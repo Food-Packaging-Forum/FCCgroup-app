@@ -155,7 +155,7 @@ def run_grouping_pipeline(analysis_df: pd.DataFrame, mapping_payload: Dict[str, 
 
     if st.session_state.grouper_signature != grouper_sig or st.session_state.grouper_instance is None:
         st.session_state.grouper_instance = initialize_grouper(
-            _df=analysis_df,
+            _df=analysis_df.iloc[:1000],
             df_signature=df_signature,
             methods=methods_signature,
             mapping_payload=mapping_payload,
@@ -194,7 +194,7 @@ def run_grouping_pipeline(analysis_df: pd.DataFrame, mapping_payload: Dict[str, 
 
     if "Chemical groups" in results_df.columns:
         results_df["Groups of concern"] = results_df.apply(
-            lambda row: ",".join(
+            lambda row: ", ".join(
                 [
                     group.strip()
                     for group in row["Chemical groups"].split(",")

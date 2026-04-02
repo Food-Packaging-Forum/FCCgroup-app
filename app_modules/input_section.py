@@ -183,6 +183,8 @@ def render_input_section() -> Tuple[pd.DataFrame, bool, int, str, List[str]]:
         unsafe_allow_html=True,
     )
 
+    st.info("⚠️ For optimization reasons, the number of entries is limited to **1,000**. Larger datasets may impact performance.")
+
     apply_mode_button_styles(st.session_state.input_mode == "Manual Entry")
 
     mode_col1, mode_col2 = st.columns(2)
@@ -212,8 +214,9 @@ def render_input_section() -> Tuple[pd.DataFrame, bool, int, str, List[str]]:
         _render_file_upload()
 
     uploaded_df_available = st.session_state.uploaded_df is not None
+    using_uploaded_input = st.session_state.input_mode == "File Upload" and uploaded_df_available
 
-    if uploaded_df_available:
+    if using_uploaded_input:
         analysis_df = st.session_state.uploaded_df.copy()
         _render_column_mapping(analysis_df)
     else:
@@ -231,7 +234,7 @@ def render_input_section() -> Tuple[pd.DataFrame, bool, int, str, List[str]]:
             input_summary_count = len(manual_input_values)
             input_summary_label = "CAS ID(s)" if st.session_state.input_type == "casId" else "SMILES string(s)"
             input_summary_preview = manual_input_values[:3]
-    elif uploaded_df_available:
+    elif using_uploaded_input:
         mapped_columns: List[str] = []
         for field, value in st.session_state.mapping_payload.items():
             if field == "name_columns":
