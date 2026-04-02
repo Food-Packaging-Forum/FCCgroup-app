@@ -9,6 +9,17 @@ from app_modules.config import DISPLAY_RESULT_COLUMNS
 from app_modules.processing import build_display_results_df
 
 
+def _has_non_empty_value(value: object) -> bool:
+    """Return True when value is neither NA nor an empty/whitespace string."""
+    if pd.isna(value):
+        return False
+
+    if str(value).strip() == "":
+        return False
+
+    return True
+
+
 def render_results_section(full_results_df: pd.DataFrame) -> None:
     """Render summary metrics, filters, table, and export controls."""
     results_df = full_results_df
@@ -30,26 +41,29 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
 
     st.markdown("### 📊 Summary Dashboard")
 
-    metrics = [
-        ("Total Chemicals", len(results_df), "🧪"),
-        (
-            "Valid SMILES",
-            f"{results_df['SMILES'].notna().sum()}/{len(results_df)}",
-            "🧬",
-        ) if "SMILES" in results_df.columns else ("Valid SMILES", "N/A", "🧬"),
-    ]
+    total_count = len(results_df)
+    metrics = [("Total Chemicals", total_count, "🧪")]
+
+    if "SMILES" in results_df.columns:
+        valid_smiles_count = int(results_df["SMILES"].apply(_has_non_empty_value).sum())
+        metrics.append(("Valid SMILES", f"{valid_smiles_count}/{total_count}", "🧬"))
+    else:
+        metrics.append(("Valid SMILES", "N/A", "🧬"))
 
     fcc_status_col = "is Food Contact Chemical"
     fcc_tier_col = "Tier of FCCprio"
 
     if fcc_status_col in results_df.columns:
-        metrics.append(("Food Contact", f"{(results_df[fcc_status_col] != '').sum()}/{len(results_df)}", "🗄️"))
+        food_contact_count = int(results_df[fcc_status_col].apply(_has_non_empty_value).sum())
+        metrics.append(("Food Contact", f"{food_contact_count}/{total_count}", "🗄️"))
 
     if fcc_tier_col in results_df.columns:
-        metrics.append(("FCCprio Tier", f"{(results_df[fcc_tier_col] != '').sum()}/{len(results_df)}", "🎯"))
+        fcc_tier_count = int(results_df[fcc_tier_col].apply(_has_non_empty_value).sum())
+        metrics.append(("FCCprio Tier", f"{fcc_tier_count}/{total_count}", "🎯"))
 
     if "Groups of concern" in results_df.columns:
-        metrics.append(("With Groups", f"{(results_df['Groups of concern'] != '').sum()}/{len(results_df)}", "🔬"))
+        groups_count = int(results_df["Groups of concern"].apply(_has_non_empty_value).sum())
+        metrics.append(("With Groups", f"{groups_count}/{total_count}", "🔬"))
 
     cols = st.columns(len(metrics))
     for col, (label, value, icon) in zip(cols, metrics):
