@@ -1,5 +1,7 @@
 """Session-state helpers."""
 
+import os
+
 import streamlit as st
 from fccgroup import GroupingMethod
 
@@ -18,6 +20,7 @@ def initialize_session_state() -> None:
         "grouper_signature": None,
         "grouper_instance": None,
         "grouping_methods": [GroupingMethod.SMARTS.value],
+        "is_admin": os.environ.get("IS_FCCGROUP_ADMIN", "").strip().lower() == "true",
     }
 
     for key, value in defaults.items():

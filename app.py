@@ -79,7 +79,8 @@ def _process_analysis(analysis_df) -> None:
         progress_bar.progress(100)
 
         st.success(f"✅ Successfully analyzed {len(st.session_state.results_df)} chemicals!")
-        st.balloons()
+        if st.session_state.is_admin:
+            st.balloons()
     except Exception as error:
         st.error(f"❌ Error during analysis: {str(error)}")
         st.exception(error)

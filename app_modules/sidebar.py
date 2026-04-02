@@ -48,8 +48,7 @@ def render_sidebar() -> bool:
                 """
             )
 
-        is_admin = os.environ.get("IS_FCCGROUP_ADMIN", "").strip().lower() == "true"
-        if is_admin:
+        if st.session_state.is_admin:
             st.markdown("---")
             st.subheader("⚙️ Grouping Configuration")
 
