@@ -115,7 +115,7 @@ def display_workflow_explanation() -> None:
                     <div style="font-size: 2.5rem; margin-right: 1rem;">{step['emoji']}</div>
                     <div>
                         <div style="font-size: 0.85rem; font-weight: 600; color: {step['color']}; letter-spacing: 0.5px;">STEP {step['number']}</div>
-                        <div style="font-size: 1.2rem; font-weight: 700; color: #1f2937;">{step['title']}</div>
+                        <div style="font-size: 1.2rem; font-weight: 700;">{step['title']}</div>
                     </div>
                 </div>
                 <ul class="ui-step-list">
@@ -148,7 +148,7 @@ def display_workflow_explanation() -> None:
                     flex-direction: column;
                 }}
                 .ui-step-list {{
-                    color: #4b5563;
+                    color: inherit;
                     line-height: 1.6;
                     font-size: 0.95rem;
                     margin: 0;
@@ -164,6 +164,9 @@ def display_workflow_explanation() -> None:
                         grid-auto-rows: auto;
                     }}
                 }}
+                [data-theme="dark"] .ui-step-card {{
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+                }}
             </style>
             <div class="ui-step-grid">
                 {''.join(cards_html)}
@@ -177,16 +180,30 @@ def display_workflow_explanation() -> None:
     st.markdown(
         textwrap.dedent(
             """
-            <div style="background: linear-gradient(135deg, #fff3cd 0%, #fff8e1 100%);
-                        border-left: 5px solid #f59e0b;
-                        border-radius: 12px;
-                        padding: 1.5rem;
-                        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);">
+            <style>
+                .common-blockers-box {
+                    background: rgba(245, 158, 11, 0.1);
+                    border-left: 5px solid #f59e0b;
+                    border-radius: 12px;
+                    padding: 1.5rem;
+                    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+                }
+                .common-blockers-title {
+                    font-weight: 700;
+                    margin-bottom: 0.5rem;
+                }
+                .common-blockers-body {
+                    font-size: 0.95rem;
+                    line-height: 1.6;
+                    opacity: 0.85;
+                }
+            </style>
+            <div class="common-blockers-box">
                 <div style="display: flex; align-items: flex-start; gap: 1rem;">
                     <div style="font-size: 1.8rem; flex-shrink: 0;">⚡</div>
                     <div>
-                        <div style="font-weight: 700; color: #92400e; margin-bottom: 0.5rem;">Common blockers</div>
-                        <div style="color: #b45309; font-size: 0.95rem; line-height: 1.6;">
+                        <div class="common-blockers-title">Common blockers</div>
+                        <div class="common-blockers-body">
                             Invalid identifier format, missing column mapping in upload mode, or trying to run without a selected grouping method.
                         </div>
                     </div>
