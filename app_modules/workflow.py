@@ -182,7 +182,7 @@ def display_workflow_explanation() -> None:
             """
             <style>
                 .common-blockers-box {
-                    background: linear-gradient(135deg, #fff3cd 0%, #fff8e1 100%);
+                    background: rgba(245, 158, 11, 0.1);
                     border-left: 5px solid #f59e0b;
                     border-radius: 12px;
                     padding: 1.5rem;
@@ -190,23 +190,12 @@ def display_workflow_explanation() -> None:
                 }
                 .common-blockers-title {
                     font-weight: 700;
-                    color: #92400e;
                     margin-bottom: 0.5rem;
                 }
                 .common-blockers-body {
-                    color: #b45309;
                     font-size: 0.95rem;
                     line-height: 1.6;
-                }
-                [data-theme="dark"] .common-blockers-box {
-                    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%);
-                    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
-                }
-                [data-theme="dark"] .common-blockers-title {
-                    color: #fbbf24;
-                }
-                [data-theme="dark"] .common-blockers-body {
-                    color: #fcd34d;
+                    opacity: 0.85;
                 }
             </style>
             <div class="common-blockers-box">
