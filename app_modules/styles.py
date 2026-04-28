@@ -153,6 +153,10 @@ GLOBAL_CSS = """
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
 
+    .metric-card-label {
+        color: #6c757d;
+    }
+
     .timeline-item {
         position: relative;
         padding-left: 2.5rem;
@@ -194,6 +198,10 @@ GLOBAL_CSS = """
 
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+    }
+
+    [data-theme="dark"] section[data-testid="stSidebar"] {
+        background: none;
     }
 
     hr {
@@ -431,6 +439,81 @@ GLOBAL_CSS = """
             border-top: 1px solid rgba(255, 255, 255, 0.2);
         }
     }
+
+    /* ======================================================
+       Dark-mode overrides
+       Streamlit sets data-theme="dark" on <html> in dark mode.
+       ====================================================== */
+
+    [data-theme="dark"] .subtitle {
+        color: #9ca3af;
+    }
+
+    [data-theme="dark"] .card {
+        background: #1e2130;
+        border-color: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-theme="dark"] .card:hover {
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.35);
+    }
+
+    [data-theme="dark"] .metric-card {
+        background: #1e2130;
+        border-color: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-theme="dark"] .metric-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    [data-theme="dark"] .metric-card-label {
+        color: #9ca3af;
+    }
+
+    [data-theme="dark"] .info-box {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.08) 100%);
+        color: inherit;
+    }
+
+    [data-theme="dark"] .success-box {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%);
+        color: inherit;
+    }
+
+    [data-theme="dark"] .warning-box {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%);
+        color: inherit;
+    }
+
+    [data-theme="dark"] .workflow-intro {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%);
+        color: inherit;
+    }
+
+    [data-theme="dark"] .use-case-item {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    [data-theme="dark"] .use-case-item:hover {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0%, rgba(102, 126, 234, 0.12) 100%);
+        border-color: #667eea;
+    }
+
+    [data-theme="dark"] .use-case-title {
+        color: #e5e7eb;
+    }
+
+    [data-theme="dark"] .use-case-description {
+        color: #9ca3af;
+    }
+
+    [data-theme="dark"] .streamlit-expanderHeader {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
 </style>
 """
 
@@ -454,14 +537,14 @@ def apply_mode_button_styles(is_manual_mode: bool) -> None:
     """Style the mode selector buttons according to selected mode."""
     is_upload_mode = not is_manual_mode
 
-    manual_background = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" if is_manual_mode else "#ffffff"
-    manual_color = "#ffffff" if is_manual_mode else "#1f2937"
-    manual_border = "none" if is_manual_mode else "1px solid #d1d5db"
+    manual_background = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" if is_manual_mode else "transparent"
+    manual_color = "#ffffff" if is_manual_mode else "inherit"
+    manual_border = "none" if is_manual_mode else "1px solid rgba(128, 128, 128, 0.4)"
     manual_shadow = "0 6px 16px rgba(102, 126, 234, 0.28)" if is_manual_mode else "0 2px 8px rgba(0, 0, 0, 0.08)"
 
-    upload_background = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" if is_upload_mode else "#ffffff"
-    upload_color = "#ffffff" if is_upload_mode else "#1f2937"
-    upload_border = "none" if is_upload_mode else "1px solid #d1d5db"
+    upload_background = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" if is_upload_mode else "transparent"
+    upload_color = "#ffffff" if is_upload_mode else "inherit"
+    upload_border = "none" if is_upload_mode else "1px solid rgba(128, 128, 128, 0.4)"
     upload_shadow = "0 6px 16px rgba(102, 126, 234, 0.28)" if is_upload_mode else "0 2px 8px rgba(0, 0, 0, 0.08)"
 
     st.markdown(
