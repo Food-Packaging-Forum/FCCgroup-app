@@ -196,10 +196,6 @@ GLOBAL_CSS = """
         font-weight: 600;
     }
 
-    section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
-    }
-
     hr {
         margin: 2rem 0;
         border: none;
@@ -482,8 +478,55 @@ GLOBAL_CSS = """
     [data-theme="dark"] .streamlit-expanderHeader { background-color: rgba(255, 255, 255, 0.05); }
     @media (prefers-color-scheme: dark) { .streamlit-expanderHeader { background-color: rgba(255, 255, 255, 0.05); } }
 
-    [data-theme="dark"] section[data-testid="stSidebar"] { background: none; }
-    @media (prefers-color-scheme: dark) { section[data-testid="stSidebar"] { background: none; } }
+    [data-theme="dark"] hr {
+        background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+    }
+    @media (prefers-color-scheme: dark) {
+        hr {
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+        }
+    }
+
+    [data-theme="dark"] .timeline-item { border-left-color: rgba(255, 255, 255, 0.1); }
+    @media (prefers-color-scheme: dark) { .timeline-item { border-left-color: rgba(255, 255, 255, 0.1); } }
+
+    [data-theme="dark"] .use-case-item {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.09);
+    }
+    [data-theme="dark"] .use-case-item:hover {
+        background: rgba(102, 126, 234, 0.1);
+        border-color: rgba(102, 126, 234, 0.45);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.12);
+    }
+    @media (prefers-color-scheme: dark) {
+        .use-case-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.09);
+        }
+        .use-case-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: rgba(102, 126, 234, 0.45);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.12);
+        }
+    }
+
+    [data-theme="dark"] .workflow-intro {
+        background: rgba(102, 126, 234, 0.1);
+    }
+    [data-theme="dark"] .workflow-intro:hover {
+        background: rgba(102, 126, 234, 0.15);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.12);
+    }
+    @media (prefers-color-scheme: dark) {
+        .workflow-intro {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        .workflow-intro:hover {
+            background: rgba(102, 126, 234, 0.15);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.12);
+        }
+    }
 </style>
 """
 
