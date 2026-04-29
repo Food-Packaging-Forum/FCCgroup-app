@@ -70,10 +70,10 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
         with col:
             st.markdown(
                 f"""
-                <div style="text-align: center; padding: 1rem; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                <div class="metric-card">
                     <div style="font-size: 2rem;">{icon}</div>
                     <div style="font-size: 1.5rem; font-weight: 700; color: #667eea; margin: 0.5rem 0;">{value}</div>
-                    <div style="font-size: 0.85rem; color: #6c757d;">{label}</div>
+                    <div class="metric-card-label" style="font-size: 0.85rem;">{label}</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
