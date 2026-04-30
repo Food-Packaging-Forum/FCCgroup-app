@@ -69,12 +69,12 @@ GLOBAL_CSS = """
     }
 
     .card {
-        background: white;
+        background: var(--secondary-background-color);
         border-radius: 15px;
         padding: 2rem;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
         margin: 1.5rem 0;
-        border: 1px solid #e9ecef;
+        border: 1px solid rgba(128, 128, 128, 0.2);
         transition: transform 0.2s, box-shadow 0.2s;
     }
 
@@ -139,12 +139,12 @@ GLOBAL_CSS = """
     }
 
     .metric-card {
-        background: white;
+        background: var(--secondary-background-color);
         border-radius: 12px;
         padding: 1.5rem;
         text-align: center;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        border: 1px solid #f0f0f0;
+        border: 1px solid rgba(128, 128, 128, 0.15);
         transition: all 0.3s ease;
     }
 
@@ -441,36 +441,36 @@ GLOBAL_CSS = """
     @media (prefers-color-scheme: dark) { .subtitle { color: #9ca3af; } }
 
     [data-theme="dark"] .card {
-        background: #1e2130;
-        border-color: rgba(255, 255, 255, 0.08);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        background: color-mix(in srgb, var(--secondary-background-color) 100%, white 18%);
+        border-color: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
     @media (prefers-color-scheme: dark) {
         .card {
-            background: #1e2130;
-            border-color: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            background: color-mix(in srgb, var(--secondary-background-color) 100%, white 18%);
+            border-color: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
     }
 
-    [data-theme="dark"] .card:hover { box-shadow: 0 8px 15px rgba(0, 0, 0, 0.35); }
-    @media (prefers-color-scheme: dark) { .card:hover { box-shadow: 0 8px 15px rgba(0, 0, 0, 0.35); } }
+    [data-theme="dark"] .card:hover { box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
+    @media (prefers-color-scheme: dark) { .card:hover { box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05); } }
 
     [data-theme="dark"] .metric-card {
-        background: #1e2130;
-        border-color: rgba(255, 255, 255, 0.08);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        background: color-mix(in srgb, var(--secondary-background-color) 100%, white 18%);
+        border-color: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
     @media (prefers-color-scheme: dark) {
         .metric-card {
-            background: #1e2130;
-            border-color: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            background: color-mix(in srgb, var(--secondary-background-color) 100%, white 18%);
+            border-color: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
     }
 
-    [data-theme="dark"] .metric-card:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); }
-    @media (prefers-color-scheme: dark) { .metric-card:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); } }
+    [data-theme="dark"] .metric-card:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
+    @media (prefers-color-scheme: dark) { .metric-card:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05); } }
 
     [data-theme="dark"] .metric-card-label { color: #9ca3af; }
     @media (prefers-color-scheme: dark) { .metric-card-label { color: #9ca3af; } }

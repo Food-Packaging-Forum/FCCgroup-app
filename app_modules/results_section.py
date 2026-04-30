@@ -22,9 +22,8 @@ def _has_non_empty_value(value: object) -> bool:
 
 def render_results_section(full_results_df: pd.DataFrame) -> None:
     """Render summary metrics, filters, table, and export controls."""
-    results_df = full_results_df
-
-    results_df.rename(columns={"casId": "CAS RN", "SMILES": "SMILES", "column_names": "Chemical names", "formula": "Formula"}, inplace=True)
+    results_df = full_results_df.copy()
+    results_df = results_df.rename(columns={"casId": "CAS RN", "SMILES": "SMILES", "column_names": "Chemical names", "formula": "Formula"})
     if len(results_df) == 0:
         st.warning("⚠️ No results to display. The dataframe is empty.")
         return
@@ -71,9 +70,9 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
             st.markdown(
                 f"""
                 <div class="metric-card">
-                    <div style="font-size: 2rem;">{icon}</div>
-                    <div style="font-size: 1.5rem; font-weight: 700; color: #667eea; margin: 0.5rem 0;">{value}</div>
-                    <div class="metric-card-label" style="font-size: 0.85rem;">{label}</div>
+                    <div class="metric-card-icon">{icon}</div>
+                    <div class="metric-card-value">{value}</div>
+                    <div class="metric-card-label">{label}</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -147,11 +146,11 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
     enrichment_cols = ["is Food Contact Chemical", "Tier of FCCprio", "Groups of concern"]
 
     col_order = []
-    col_order.extend([c for c in identifier_cols if c in full_results_df.columns])
-    col_order.extend([c for c in enrichment_cols if c in full_results_df.columns])
-    col_order.extend([c for c in full_results_df.columns if c not in col_order])
+    col_order.extend([c for c in identifier_cols if c in results_df.columns])
+    col_order.extend([c for c in enrichment_cols if c in results_df.columns])
+    col_order.extend([c for c in results_df.columns if c not in col_order])
 
-    export_results_df = full_results_df[col_order]
+    export_results_df = results_df[col_order]
 
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:

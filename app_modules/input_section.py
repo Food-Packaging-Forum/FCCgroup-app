@@ -27,7 +27,7 @@ def _render_manual_entry() -> List[str]:
 
     input_label = "CAS Registry Numbers" if st.session_state.input_type == "casId" else "SMILES Notation"
     if st.session_state.input_type == "casId":
-        placeholder_text = "50-00-0\n67-56-1\n107-21-1\n..."
+        placeholder_text = "80-05-7\n538-23-8\n70546-25-7\n..."
         help_text = "Enter one CAS ID per line."
         tips_html = """
         <div class="info-box">
@@ -40,7 +40,7 @@ def _render_manual_entry() -> List[str]:
         </div>
         """
     else:
-        placeholder_text = "CCO\nCC(=O)O\nc1ccccc1\n..."
+        placeholder_text = "CC(C)(C1=CC=C(O)C=C1)C1=CC=C(O)C=C1\nCCCCCCCC(=O)OCC(COC(=O)CCCCCCC)OC(=O)CCCCCCC\n..."
         help_text = "Enter one SMILES string per line."
         tips_html = """
         <div class="info-box">
@@ -67,9 +67,9 @@ def _render_manual_entry() -> List[str]:
     with manual_col1:
         if st.button("📝 Try Sample Data", use_container_width=True, key="sample_data_button"):
             if st.session_state.input_type == "casId":
-                st.session_state.cas_input_text = "50-00-0\n67-56-1\n107-21-1\n108-95-2\n110-82-7\n111-46-6"
+                st.session_state.cas_input_text = "80-05-7\n538-23-8\n70546-25-7\n68134-22-5\n128-37-0\n50-00-0"
             else:
-                st.session_state.cas_input_text = "C=O\nCO\nOCCO\nc1ccccc1O\nCCCCC\nCC(C)=O"
+                st.session_state.cas_input_text = "CC(C)(C1=CC=C(O)C=C1)C1=CC=C(O)C=C1\nCCCCCCCC(=O)OCC(COC(=O)CCCCCCC)OC(=O)CCCCCCC\nCCN(CC)C1=CC2=C(C=C1)C(C#N)=C(C1=NC3=C(S1)C=CC=C3)C(=O)O2\nCC(=O)C(N=NC1=CC=CC=C1C(F)(F)F)C(=O)NC1=CC2=C(NC(=O)N2)C=C1\nCC1=CC(=C(O)C(=C1)C(C)(C)C)C(C)(C)C\nC=O"
             st.rerun()
     with manual_col2:
         st.markdown(tips_html, unsafe_allow_html=True)
