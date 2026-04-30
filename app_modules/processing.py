@@ -6,7 +6,6 @@ import pandas as pd
 import streamlit as st
 from rdkit import Chem
 
-from constants import FPPS_SET, REDUCED_FPPS
 from fccgroup import ChemicalGrouper, ColumnMapping, GroupingConfig
 from fccgroup.constants import MULTIINDEX_IDENTIFIER_LABEL, MULTIINDEX_STRUCTURAL_LABEL
 
@@ -40,7 +39,6 @@ def initialize_grouper(
         config = GroupingConfig(
             methods=list(methods),
             column_mapping=column_mapping,
-            smarts_fingerprints=REDUCED_FPPS.keys(),
         )
         return ChemicalGrouper(df=_df, grouping_config=config)
 
