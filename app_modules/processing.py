@@ -1,6 +1,6 @@
 """Data processing and grouping pipeline helpers."""
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 import pandas as pd
 import streamlit as st
@@ -8,6 +8,7 @@ from rdkit import Chem
 
 from constants import FPPS_SET, REDUCED_FPPS
 from fccgroup import ChemicalGrouper, ColumnMapping, GroupingConfig
+from fccgroup.constants import MULTIINDEX_IDENTIFIER_LABEL, MULTIINDEX_STRUCTURAL_LABEL
 
 
 @st.cache_data
@@ -86,6 +87,41 @@ def build_display_results_df(results_df: pd.DataFrame, display_columns: List[str
     return results_df.copy()
 
 
+def _make_unique_column_name(base_name: str, existing_names: Set[str]) -> str:
+    """Ensure flattened column names stay unique and deterministic."""
+    candidate = base_name
+    suffix = 2
+    while candidate in existing_names:
+        candidate = f"{base_name} ({suffix})"
+        suffix += 1
+    return candidate
+
+
+def _flatten_results_columns(results_df: pd.DataFrame) -> pd.DataFrame:
+    """Flatten fccgroup MultiIndex output while preserving child column labels."""
+    flattened_columns: List[str] = []
+    seen: Set[str] = set()
+
+    for column in results_df.columns:
+        parent = str(column[0]).strip() if len(column) > 0 and pd.notna(column[0]) else ""
+        child = str(column[1]).strip() if len(column) > 1 and pd.notna(column[1]) else ""
+
+        if parent in {MULTIINDEX_IDENTIFIER_LABEL, MULTIINDEX_STRUCTURAL_LABEL} and child:
+            base_name = child
+        elif child:
+            base_name = f"{parent} | {child}" if parent else child
+        else:
+            base_name = parent or "column"
+
+        unique_name = _make_unique_column_name(base_name, seen)
+        seen.add(unique_name)
+        flattened_columns.append(unique_name)
+
+    flattened_df = results_df.copy()
+    flattened_df.columns = flattened_columns
+    return flattened_df
+
+
 def _canonicalize_smiles(smiles: str) -> Optional[str]:
     """Canonicalize SMILES with RDKit."""
     try:
@@ -162,7 +198,8 @@ def run_grouping_pipeline(analysis_df: pd.DataFrame, mapping_payload: Dict[str, 
         )
         st.session_state.grouper_signature = grouper_sig
 
-    results_df = st.session_state.grouper_instance.group_chemicals()
+    results_df = st.session_state.grouper_instance.group_chemicals(save=False)
+    results_df = _flatten_results_columns(results_df)
 
     smiles_lookup_df = load_smiles_lookup()
     if smiles_lookup_df is not None:
@@ -191,19 +228,4 @@ def run_grouping_pipeline(analysis_df: pd.DataFrame, mapping_payload: Dict[str, 
             results_df["is Food Contact Chemical"].astype(str).str.strip() == "No"
         )
         results_df.loc[unresolved_fcc_mask, "is Food Contact Chemical"] = smiles_fcc_series[unresolved_fcc_mask]
-
-    if "Chemical groups" in results_df.columns:
-        results_df["Groups of concern"] = results_df.apply(
-            lambda row: ", ".join(
-                [
-                    group.strip()
-                    for group in row["Chemical groups"].split(",")
-                    if group.strip() in FPPS_SET and FPPS_SET[group.strip()]
-                ]
-            ),
-            axis=1,
-        )
-    else:
-        results_df["Groups of concern"] = ""
-
     return results_df
