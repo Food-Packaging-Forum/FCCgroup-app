@@ -40,7 +40,7 @@ def display_workflow_explanation() -> None:
             "number": "0",
             "emoji": "⚙️",
             "title": "Start from the sidebar",
-            "color": "#667eea",
+            "color": "#255aa7",
             "content": [
                 "Click <strong>Explore Detailed Workflow</strong> to open this page.",
                 "Click <strong>Back to Analysis</strong> (top of this page) to return to the main analysis screen.",
@@ -55,7 +55,7 @@ def display_workflow_explanation() -> None:
             "number": "1",
             "emoji": "📥",
             "title": "Add your input data (Step 1)",
-            "color": "#764ba2",
+            "color": "#2c3e61",
             "content": [
                 "Choose <strong>Manual Entry</strong> for quick checks.",
                 "Choose <strong>File Upload</strong> for Excel/CSV batches.",
@@ -69,7 +69,7 @@ def display_workflow_explanation() -> None:
             "number": "2",
             "emoji": "🚀",
             "title": "Run analysis (Step 2)",
-            "color": "#f5576c",
+            "color": "#356fb6",
             "content": [
                 "Click <strong>Start Analysis</strong>.",
                 "The button stays disabled until valid input and at least one grouping method are available.",
@@ -84,7 +84,7 @@ def display_workflow_explanation() -> None:
             "number": "3",
             "emoji": "📊",
             "title": "Explore results and export (Step 3)",
-            "color": "#00f2fe",
+            "color": "#1f4d90",
             "content": [
                 "Read the <strong>Summary Dashboard</strong> first (total chemicals, valid structures, FCC status, tiers, groups).",
                 "Open <strong>Filter Options</strong> to focus results by:",
@@ -140,7 +140,7 @@ def display_workflow_explanation() -> None:
                     border-radius: 12px;
                     padding: 1.5rem;
                     margin: 0;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+                    box-shadow: 0 2px 8px rgba(44,62,97,0.08);
                     transition: all 0.3s ease;
                     height: 100%;
                     box-sizing: border-box;
@@ -182,11 +182,11 @@ def display_workflow_explanation() -> None:
             """
             <style>
                 .common-blockers-box {
-                    background: rgba(245, 158, 11, 0.1);
-                    border-left: 5px solid #f59e0b;
+                    background: rgba(37, 90, 167, 0.08);
+                    border-left: 5px solid #255aa7;
                     border-radius: 12px;
                     padding: 1.5rem;
-                    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+                    box-shadow: 0 2px 8px rgba(37, 90, 167, 0.15);
                 }
                 .common-blockers-title {
                     font-weight: 700;
@@ -227,7 +227,7 @@ def display_workflow_explanation() -> None:
     with col1:
         st.markdown(
             """
-            <div class="workflow-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);">
+            <div class="workflow-card workflow-card-identification">
                 <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔎</div>
                 <strong style="font-size: 1.2rem; display: block; margin-bottom: 0.6rem;">FCC Identification</strong>
                 <p class="brief-description">
@@ -257,7 +257,7 @@ def display_workflow_explanation() -> None:
     with col2:
         st.markdown(
             """
-            <div class="workflow-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); box-shadow: 0 4px 10px rgba(245, 87, 108, 0.3);">
+            <div class="workflow-card workflow-card-prioritization">
                 <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔬</div>
                 <strong style="font-size: 1.2rem; display: block; margin-bottom: 0.6rem;">FCCprio Prioritization</strong>
                 <p class="brief-description">
@@ -286,7 +286,7 @@ def display_workflow_explanation() -> None:
     with col3:
         st.markdown(
             """
-            <div class="workflow-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); box-shadow: 0 4px 10px rgba(79, 172, 254, 0.3);">
+            <div class="workflow-card workflow-card-grouping">
                 <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎯</div>
                 <strong style="font-size: 1.2rem; display: block; margin-bottom: 0.6rem;">Structural Grouping</strong>
                 <p class="brief-description">
