@@ -19,7 +19,7 @@ sys.path.append(str(Path(__file__).parent / "src"))
 
 st.set_page_config(
     page_title="FCC Chemical Grouping Tool",
-    page_icon="🧪",
+    page_icon="https://foodpackagingforum.org/wp-content/uploads/2024/09/fpf-icon-1.svg",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -39,9 +39,14 @@ def _render_process_section(analysis_df, input_summary_ready: bool) -> bool:
 
     _, center_col, _ = st.columns([1, 2, 1])
     with center_col:
+        st.markdown(
+            '<p class="cta-hint">When your input is ready, click Start Analysis to launch automated grouping.</p>',
+            unsafe_allow_html=True,
+        )
         return st.button(
             "🚀 Start Analysis",
             type="primary",
+            key="start_analysis_button",
             use_container_width=True,
             disabled=not input_summary_ready or not st.session_state.grouping_methods,
         )

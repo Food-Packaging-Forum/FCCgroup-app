@@ -2,14 +2,18 @@
 import os
 import streamlit as st
 from fccgroup import GroupingMethod
+from utils import _svg_as_data_uri
+from pathlib import Path
 
 
 def render_sidebar() -> bool:
     """Render sidebar content and grouping configuration controls."""
     open_workflow = False
     with st.sidebar:
-        st.image("assets/FCCprio_logo_signet.svg", use_container_width=True)
-        st.markdown('<h1 class="sidebar-main-header"><span class="highlight">FCC Grouping Tool</span></h1>', unsafe_allow_html=True)
+        image_path = Path(__file__).resolve().parents[1] / "assets" / "FCCprio_logo_signet.svg"
+        image_src = _svg_as_data_uri(image_path)
+
+        st.markdown(f'<h1 class="sidebar-main-header"><img src="{image_src}" alt="FCCprio logo"><span class="highlight">FCC Grouping Tool</span></h1>', unsafe_allow_html=True)
         st.markdown("---")
 
         open_workflow = st.button(
@@ -48,6 +52,19 @@ def render_sidebar() -> bool:
                 """
             )
 
+        with st.expander("⚖️ License"):
+            st.markdown(
+                """
+                [![CC BY 4.0](https://licensebuttons.net/l/by/4.0/88x31.png)](https://creativecommons.org/licenses/by/4.0/)
+
+                **Creative Commons Attribution 4.0 International**
+
+                Copyright (c) 2026 Food Packaging Forum
+
+                This work is licensed under the [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
+                """
+            )
+
         if st.session_state.is_admin:
             st.markdown("---")
             st.subheader("⚙️ Grouping Configuration")
@@ -78,7 +95,10 @@ def render_sidebar() -> bool:
             if "grouping_methods" not in st.session_state:
                 st.session_state.grouping_methods = [GroupingMethod.SMARTS.value]
 
+
         st.markdown("---")
+        st.image("assets/fpf_logo_RGB_vector_SVG.svg", width=200)
         st.caption("© 2026 Food Packaging Forum")
+        st.markdown("""<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank"><img src="https://licensebuttons.net/l/by/4.0/88x31.png" alt="CC BY 4.0"></a>""", unsafe_allow_html=True)
 
     return open_workflow
