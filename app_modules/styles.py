@@ -1,26 +1,78 @@
 """Styling and top-level page chrome."""
 
+import base64
+from pathlib import Path
+
 import streamlit as st
+from utils import _svg_as_data_uri
 
 
 GLOBAL_CSS = """
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@600;700;800&display=swap');
+
+    :root {
+        --fpf-blue: #255aa7;
+        --fpf-dark-blue: #2c3e61;
+        --fpf-soft-blue: #d9e7f8;
+        --fpf-light-gray: #eef1f5;
+        --fpf-border: #cfd8e3;
+        --fpf-text: #1f2a37;
+        --fpf-muted: #556070;
+        --fpf-gradient: linear-gradient(135deg, #255aa7 0%, #2c3e61 100%);
+        --fpf-shadow: 0 6px 16px rgba(37, 90, 167, 0.28);
+        --fpf-shadow-strong: 0 8px 18px rgba(37, 90, 167, 0.36);
+    }
+
+    html, body, [class*="css"] {
+        font-family: 'Open Sans', 'Segoe UI', sans-serif;
+        color: var(--fpf-text);
+    }
+
+    h1, h2, h3, h4, h5, h6,
+    .highlight {
+        font-family: 'Poppins', 'Segoe UI', sans-serif;
+    }
+
     .block-container {
         padding-top: 2rem;
         padding-bottom: 2rem;
         max-width: 1200px;
     }
 
+    .brand-banner {
+        display: flex;
+        justify-content: center;
+        margin: 0 0 1rem 0;
+    }
+
+    .brand-banner img {
+        max-height: 62px;
+        object-fit: contain;
+        width: auto;
+    }
+
     .main-header {
         font-size: 2.8rem;
         font-weight: 700;
+        font-family: 'Poppins', 'Segoe UI', sans-serif;
         text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
         margin-bottom: 0.5rem;
         padding: 1rem 0;
     }
 
+    .main-header img {
+        height: 40px;
+        width: auto;
+        display: inline-block;
+    }
+
     .main-header .highlight {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--fpf-gradient);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
@@ -28,13 +80,22 @@ GLOBAL_CSS = """
     .sidebar-main-header {
         font-size: 2rem;
         font-weight: 700;
+        font-family: 'Poppins', 'Segoe UI', sans-serif;
         text-align: center;
         margin-bottom: 0.5rem;
         padding: 1rem 0;
     }
 
+    .sidebar-main-header img {
+        width: 32px;
+        height: auto;
+        padding-right: 0.35rem;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
     .sidebar-main-header .highlight {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--fpf-gradient);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
@@ -42,30 +103,75 @@ GLOBAL_CSS = """
     .subtitle {
         text-align: center;
         font-size: 1.1rem;
-        color: #6c757d;
-        margin-bottom: 2rem;
+        color: var(--fpf-muted);
+        margin-bottom: 1rem;
+    }
+
+    .header-intro {
+        max-width: 900px;
+        margin: 0 auto 1.6rem auto;
+        background: linear-gradient(180deg, rgba(37, 90, 167, 0.08) 0%, rgba(44, 62, 97, 0.04) 100%);
+        border: 1px solid var(--fpf-border);
+        border-left: 5px solid var(--fpf-blue);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        line-height: 1.55;
+        font-size: 0.98rem;
+        color: var(--fpf-text);
+        box-shadow: 0 2px 6px rgba(44, 62, 97, 0.08);
+    }
+
+    .header-intro strong {
+        color: var(--fpf-dark-blue);
+        font-family: 'Poppins', 'Segoe UI', sans-serif;
+        font-weight: 700;
     }
 
     .st-key-sidebar_workflow_button button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--fpf-gradient);
         color: #ffffff;
         border: none;
         border-radius: 12px;
         min-height: 2.6rem;
         font-weight: 700;
         letter-spacing: 0.01em;
-        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+        box-shadow: var(--fpf-shadow);
     }
 
     .st-key-sidebar_workflow_button button:hover {
         transform: translateY(-1px);
-        box-shadow: 0 8px 18px rgba(102, 126, 234, 0.38);
+        box-shadow: var(--fpf-shadow-strong);
         filter: saturate(1.1);
     }
 
     .st-key-sidebar_workflow_button button:focus-visible {
-        outline: 3px solid rgba(118, 75, 162, 0.35);
+        outline: 3px solid rgba(37, 90, 167, 0.35);
         outline-offset: 1px;
+    }
+
+    .st-key-start_analysis_button button {
+        background: var(--fpf-gradient);
+        color: #ffffff;
+        border: none;
+        border-radius: 12px;
+        min-height: 3rem;
+        font-family: 'Poppins', 'Segoe UI', sans-serif;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        box-shadow: 0 10px 24px rgba(37, 90, 167, 0.34);
+    }
+
+    .st-key-start_analysis_button button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 28px rgba(37, 90, 167, 0.42);
+    }
+
+    .cta-hint {
+        text-align: center;
+        margin-bottom: 0.65rem;
+        color: var(--fpf-dark-blue);
+        font-size: 0.96rem;
+        font-weight: 600;
     }
 
     .card {
@@ -84,19 +190,19 @@ GLOBAL_CSS = """
     }
 
     .process-step {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--fpf-gradient);
         color: white;
         border-radius: 12px;
         padding: 1.5rem;
         margin: 1rem 0;
         text-align: center;
-        box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 4px 10px rgba(37, 90, 167, 0.3);
         transition: all 0.3s ease;
     }
 
     .process-step:hover {
         transform: scale(1.02);
-        box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 6px 15px rgba(37, 90, 167, 0.4);
     }
 
     .process-step h3 {
@@ -112,12 +218,12 @@ GLOBAL_CSS = """
     }
 
     .info-box {
-        background: rgba(59, 130, 246, 0.1);
-        border-left: 4px solid #3b82f6;
+        background: rgba(37, 90, 167, 0.1);
+        border-left: 4px solid var(--fpf-blue);
         padding: 1.2rem;
         margin: 0 0 1rem;
         border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+        box-shadow: 0 2px 4px rgba(37, 90, 167, 0.1);
     }
 
     .success-box {
@@ -130,12 +236,12 @@ GLOBAL_CSS = """
     }
 
     .warning-box {
-        background: rgba(245, 158, 11, 0.1);
-        border-left: 4px solid #f59e0b;
+        background: rgba(44, 62, 97, 0.08);
+        border-left: 4px solid var(--fpf-dark-blue);
         padding: 1.2rem;
         margin: 1rem 0;
         border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(245, 158, 11, 0.1);
+        box-shadow: 0 2px 4px rgba(44, 62, 97, 0.1);
     }
 
     .metric-card {
@@ -154,7 +260,20 @@ GLOBAL_CSS = """
     }
 
     .metric-card-label {
-        color: #6c757d;
+        color: var(--fpf-muted);
+    }
+
+    .metric-card-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .metric-card-value {
+        font-family: 'Poppins', 'Segoe UI', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--fpf-dark-blue);
+        margin-bottom: 0.2rem;
     }
 
     .timeline-item {
@@ -175,13 +294,13 @@ GLOBAL_CSS = """
         width: 2rem;
         height: 2rem;
         border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--fpf-gradient);
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
         font-weight: bold;
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 2px 8px rgba(37, 90, 167, 0.4);
     }
 
     .stButton > button {
@@ -278,8 +397,8 @@ GLOBAL_CSS = """
     }
 
     .workflow-intro {
-        background: rgba(102, 126, 234, 0.08);
-        border-left: 4px solid #667eea;
+        background: rgba(37, 90, 167, 0.08);
+        border-left: 4px solid var(--fpf-blue);
         padding: 2rem;
         margin: 1.5rem 0 2rem 0;
         border-radius: 12px;
@@ -289,9 +408,9 @@ GLOBAL_CSS = """
     }
 
     .workflow-intro:hover {
-        border-left-color: #764ba2;
-        background: rgba(102, 126, 234, 0.13);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        border-left-color: var(--fpf-dark-blue);
+        background: rgba(37, 90, 167, 0.12);
+        box-shadow: 0 4px 12px rgba(37, 90, 167, 0.15);
     }
 
     .use-case-item {
@@ -313,7 +432,7 @@ GLOBAL_CSS = """
         top: 0;
         bottom: 0;
         width: 4px;
-        background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(180deg, #255aa7 0%, #2c3e61 100%);
         transform: scaleY(0);
         transform-origin: center;
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -321,9 +440,9 @@ GLOBAL_CSS = """
 
     .use-case-item:hover {
         transform: translateX(4px);
-        border-color: #667eea;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
-        background: rgba(102, 126, 234, 0.07);
+        border-color: var(--fpf-blue);
+        box-shadow: 0 4px 12px rgba(37, 90, 167, 0.15);
+        background: rgba(37, 90, 167, 0.07);
     }
 
     .use-case-item:hover::before {
@@ -346,13 +465,14 @@ GLOBAL_CSS = """
     .workflow-section-title {
         font-size: 2.8rem;
         font-weight: 700;
+        font-family: 'Poppins', 'Segoe UI', sans-serif;
         text-align: center;
         margin: 2rem 0 2.5rem 0;
         padding: 1rem 0;
     }
 
     .workflow-section-title .highlight {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--fpf-gradient);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -361,16 +481,32 @@ GLOBAL_CSS = """
     .workflow-subsection-title {
         font-size: 1.8rem;
         font-weight: 700;
+        font-family: 'Poppins', 'Segoe UI', sans-serif;
         text-align: center;
         margin: 2.5rem 0 2rem 0;
         padding: 0.5rem 0;
     }
 
     .workflow-subsection-title .highlight {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--fpf-gradient);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
+    }
+
+    .workflow-card-identification {
+        background: linear-gradient(135deg, #255aa7 0%, #2c3e61 100%);
+        box-shadow: 0 4px 10px rgba(37, 90, 167, 0.3);
+    }
+
+    .workflow-card-prioritization {
+        background: linear-gradient(135deg, #1f4d90 0%, #2c3e61 100%);
+        box-shadow: 0 4px 10px rgba(31, 77, 144, 0.3);
+    }
+
+    .workflow-card-grouping {
+        background: linear-gradient(135deg, #356fb6 0%, #255aa7 100%);
+        box-shadow: 0 4px 10px rgba(37, 90, 167, 0.3);
     }
 
     .workflow-button {
@@ -437,8 +573,8 @@ GLOBAL_CSS = """
        to ensure maximum compatibility across Streamlit versions.
        ====================================================== */
 
-    [data-theme="dark"] .subtitle { color: #9ca3af; }
-    @media (prefers-color-scheme: dark) { .subtitle { color: #9ca3af; } }
+    [data-theme="dark"] .subtitle { color: #c9d5e2; }
+    @media (prefers-color-scheme: dark) { .subtitle { color: #c9d5e2; } }
 
     [data-theme="dark"] .card {
         background: color-mix(in srgb, var(--secondary-background-color) 100%, white 18%);
@@ -495,9 +631,9 @@ GLOBAL_CSS = """
         border-color: rgba(255, 255, 255, 0.09);
     }
     [data-theme="dark"] .use-case-item:hover {
-        background: rgba(102, 126, 234, 0.1);
-        border-color: rgba(102, 126, 234, 0.45);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.12);
+        background: rgba(37, 90, 167, 0.1);
+        border-color: rgba(37, 90, 167, 0.45);
+        box-shadow: 0 4px 12px rgba(37, 90, 167, 0.12);
     }
     @media (prefers-color-scheme: dark) {
         .use-case-item {
@@ -505,26 +641,42 @@ GLOBAL_CSS = """
             border-color: rgba(255, 255, 255, 0.09);
         }
         .use-case-item:hover {
-            background: rgba(102, 126, 234, 0.1);
-            border-color: rgba(102, 126, 234, 0.45);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.12);
+            background: rgba(37, 90, 167, 0.1);
+            border-color: rgba(37, 90, 167, 0.45);
+            box-shadow: 0 4px 12px rgba(37, 90, 167, 0.12);
         }
     }
 
     [data-theme="dark"] .workflow-intro {
-        background: rgba(102, 126, 234, 0.1);
+        background: rgba(37, 90, 167, 0.1);
     }
     [data-theme="dark"] .workflow-intro:hover {
-        background: rgba(102, 126, 234, 0.15);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.12);
+        background: rgba(37, 90, 167, 0.15);
+        box-shadow: 0 4px 12px rgba(37, 90, 167, 0.12);
     }
     @media (prefers-color-scheme: dark) {
         .workflow-intro {
-            background: rgba(102, 126, 234, 0.1);
+            background: rgba(37, 90, 167, 0.1);
         }
         .workflow-intro:hover {
-            background: rgba(102, 126, 234, 0.15);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.12);
+            background: rgba(37, 90, 167, 0.15);
+            box-shadow: 0 4px 12px rgba(37, 90, 167, 0.12);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .main-header {
+            font-size: 2.2rem;
+            padding: 0.5rem 0;
+        }
+
+        .header-intro {
+            padding: 0.9rem 1rem;
+            font-size: 0.93rem;
+        }
+
+        .brand-banner img {
+            max-height: 52px;
         }
     }
 </style>
@@ -538,10 +690,27 @@ def apply_global_styles() -> None:
 
 def render_page_header() -> None:
     """Render app title area."""
-    st.markdown('<h1 class="main-header">🧪 <span class="highlight">FCC Grouping Tool</span></h1>', unsafe_allow_html=True)
+    image_path = Path(__file__).resolve().parents[1] / "assets" / "FCCprio_logo_signet.svg"
+    image_src = _svg_as_data_uri(image_path)
+    
+    st.markdown(
+        f'<h1 class="main-header"><img src="{image_src}" alt="FCCprio logo"><span class="highlight">FCC Grouping Tool</span></h1>',
+        unsafe_allow_html=True,
+    )
 
     st.markdown(
         '<p class="subtitle">Identify and classify Food Contact Chemicals using FPF\'s integrated databases and structural analysis</p>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+        <div class="info-box">
+            This tool helps researchers, regulators, and supply-chain professionals rapidly screen and organize food contact chemicals using integrated FPF resources.
+            <br>
+            <strong>Follow each of the three steps below</strong> to submit your data, run the automated analysis, and explore grouped results.
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
@@ -550,15 +719,15 @@ def apply_mode_button_styles(is_manual_mode: bool) -> None:
     """Style the mode selector buttons according to selected mode."""
     is_upload_mode = not is_manual_mode
 
-    manual_background = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" if is_manual_mode else "transparent"
+    manual_background = "linear-gradient(135deg, #255aa7 0%, #2c3e61 100%)" if is_manual_mode else "transparent"
     manual_color = "#ffffff" if is_manual_mode else "inherit"
     manual_border = "none" if is_manual_mode else "1px solid rgba(128, 128, 128, 0.4)"
-    manual_shadow = "0 6px 16px rgba(102, 126, 234, 0.28)" if is_manual_mode else "0 2px 8px rgba(0, 0, 0, 0.08)"
+    manual_shadow = "0 6px 16px rgba(37, 90, 167, 0.28)" if is_manual_mode else "0 2px 8px rgba(0, 0, 0, 0.08)"
 
-    upload_background = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" if is_upload_mode else "transparent"
+    upload_background = "linear-gradient(135deg, #255aa7 0%, #2c3e61 100%)" if is_upload_mode else "transparent"
     upload_color = "#ffffff" if is_upload_mode else "inherit"
     upload_border = "none" if is_upload_mode else "1px solid rgba(128, 128, 128, 0.4)"
-    upload_shadow = "0 6px 16px rgba(102, 126, 234, 0.28)" if is_upload_mode else "0 2px 8px rgba(0, 0, 0, 0.08)"
+    upload_shadow = "0 6px 16px rgba(37, 90, 167, 0.28)" if is_upload_mode else "0 2px 8px rgba(0, 0, 0, 0.08)"
 
     st.markdown(
         f"""
