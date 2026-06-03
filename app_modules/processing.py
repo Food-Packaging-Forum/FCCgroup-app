@@ -196,7 +196,7 @@ def run_grouping_pipeline(analysis_df: pd.DataFrame, mapping_payload: Dict[str, 
         )
         st.session_state.grouper_signature = grouper_sig
 
-    results_df = st.session_state.grouper_instance.group_chemicals(save=False)
+    results_df = st.session_state.grouper_instance.group_chemicals(save=False, verbose=True)
     results_df = _flatten_results_columns(results_df)
 
     smiles_lookup_df = load_smiles_lookup()
