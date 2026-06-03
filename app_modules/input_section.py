@@ -95,13 +95,29 @@ def _render_file_upload() -> None:
 
     try:
         row_col = st.number_input("Row number containing headers:", min_value=1, max_value=11, value=1, step=1, key="header_row_input")
-        if uploaded_file.name.endswith(".csv"):
-            df_upload = pd.read_csv(uploaded_file, header=row_col - 1)
-        else:
-            sheet_name = st.selectbox("Sheet name:", options=pd.ExcelFile(uploaded_file).sheet_names, key="sheet_selector")
-            df_upload = pd.read_excel(uploaded_file, sheet_name=sheet_name, header=row_col - 1)
 
-        st.session_state.uploaded_df = df_upload
+        sheet_name = None
+        if not uploaded_file.name.endswith(".csv"):
+            # Cache sheet names separately — reading them is cheap but still avoids redundant I/O.
+            file_id = (uploaded_file.name, uploaded_file.size)
+            if st.session_state.get("_upload_sheet_names_key") != file_id:
+                uploaded_file.seek(0)
+                st.session_state._upload_sheet_names = pd.ExcelFile(uploaded_file).sheet_names
+                st.session_state._upload_sheet_names_key = file_id
+            sheet_name = st.selectbox("Sheet name:", options=st.session_state._upload_sheet_names, key="sheet_selector")
+
+        # Only re-parse the file when the file itself or its parsing parameters change.
+        parse_key = (uploaded_file.name, uploaded_file.size, row_col, sheet_name)
+        if st.session_state.get("_upload_parse_key") != parse_key:
+            uploaded_file.seek(0)
+            if uploaded_file.name.endswith(".csv"):
+                df_upload = pd.read_csv(uploaded_file, header=row_col - 1)
+            else:
+                df_upload = pd.read_excel(uploaded_file, sheet_name=sheet_name, header=row_col - 1)
+            st.session_state.uploaded_df = df_upload
+            st.session_state._upload_parse_key = parse_key
+
+        df_upload = st.session_state.uploaded_df
         st.success(f"✅ Uploaded dataset with {len(df_upload)} rows and {len(df_upload.columns)} columns.")
         st.dataframe(df_upload.head(5), use_container_width=True)
     except Exception as error:
