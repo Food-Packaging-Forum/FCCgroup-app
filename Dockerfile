@@ -1,9 +1,11 @@
 FROM python:3.11-slim
 
-# Install system dependencies required by RDKit
+# Install system dependencies required by RDKit and scikit-learn (libgomp1 = OpenMP runtime)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libxrender1 \
     libxext6 \
+    libgomp1 \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
