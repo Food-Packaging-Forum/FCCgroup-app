@@ -13,7 +13,7 @@ def render_sidebar() -> bool:
         image_path = Path(__file__).resolve().parents[1] / "assets" / "FCCprio_logo_signet.svg"
         image_src = _svg_as_data_uri(image_path)
 
-        st.markdown(f'<h1 class="sidebar-main-header"><img src="{image_src}" alt="FCCprio logo"><span class="highlight">FCC Grouping Tool</span></h1>', unsafe_allow_html=True)
+        st.markdown(f'<h1 class="sidebar-main-header"><img src="{image_src}" alt="FCCprio logo"><span class="highlight">FCCgroup</span></h1>', unsafe_allow_html=True)
         st.markdown("---")
 
         open_workflow = st.button(
