@@ -161,6 +161,7 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
             file_name=f"fcc_grouping_results_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv",
             mime="text/csv",
             use_container_width=True,
+            key="download_csv_button",
         )
 
     with col2:
@@ -174,10 +175,11 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
             file_name=f"fcc_grouping_results_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True,
+            key="download_excel_button",
         )
 
     with col3:
-        if st.button("🔄 Start New Analysis", use_container_width=True):
+        if st.button("🔄 Clear Data", use_container_width=True, key="clear_data_results_button"):
             st.session_state.results_df = None
             st.session_state.cas_input_text = ""
             st.rerun()
