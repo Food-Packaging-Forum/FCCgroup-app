@@ -41,8 +41,8 @@ _TAB_CONTENT = {
             },
         ],
         "links": [
-            {"label": "📄 FCCdb Publication", "url": "https://www.sciencedirect.com/science/article/pii/S0160412020321802"},
-            {"label": "📄 FCCmigex Publication", "url": "https://doi.org/10.1080/10408398.2022.2067828"},
+            {"label": "FCCdb Publication", "icon": "fas fa-file-invoice", "url": "https://www.sciencedirect.com/science/article/pii/S0160412020321802"},
+            {"label": "FCCmigex Publication", "icon": "fas fa-file-invoice", "url": "https://doi.org/10.1080/10408398.2022.2067828"},
         ],
     },
     "fcc_prio": {
@@ -75,7 +75,7 @@ _TAB_CONTENT = {
             },
         ],
         "links": [
-            {"label": "📄 FCCprio Data (Zenodo)", "url": "https://doi.org/10.5281/zenodo.14881617"},
+            {"label": "FCCprio Data (Zenodo)", "icon": "fas fa-database", "url": "https://doi.org/10.5281/zenodo.14881617"},
         ],
     },
     "struct_grp": {
@@ -109,7 +109,7 @@ _TAB_CONTENT = {
             },
         ],
         "links": [
-            {"label": "📦 FCCgroup on PyPI", "url": "https://pypi.org/project/fccgroup/"},
+            {"label": "FCCgroup on PyPI", "icon": "fas fa-cube", "url": "https://pypi.org/project/fccgroup/"},
         ],
     },
 }
@@ -176,33 +176,64 @@ def _render_workflow_step_tabs() -> None:
     # Styled HTML link buttons for publications
     st.markdown(
         """
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
         <style>
         .pub-link-btn {
-            display: inline-block;
-            padding: 0.55rem 1.4rem;
-            background: transparent;
-            color: #255aa7;
-            border: 1px solid rgba(128,128,128,0.4);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            background: #ffffff;
+            color: #1f2a37;
+            border: 2px solid #dde8f8;
             border-radius: 12px;
             font-weight: 600;
-            font-size: 0.9rem;
             font-family: 'Open Sans', 'Segoe UI', sans-serif;
             text-decoration: none !important;
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
             cursor: pointer;
-            white-space: nowrap;
+            min-width: 200px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .pub-link-btn .pub-icon {
+            width: 2.75rem;
+            height: 2.75rem;
+            border-radius: 50%;
+            background: #255aa7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.25s ease;
+        }
+        .pub-link-btn .pub-icon i {
+            font-size: 1.2rem;
+            color: #ffffff;
+            transition: color 0.25s ease;
+        }
+        .pub-link-btn .pub-text {
+            font-size: 0.92rem;
+            font-weight: 700;
+            line-height: 1.3;
+            white-space: normal;
+            color: #1f2a37;
+            transition: color 0.25s ease;
         }
         .pub-link-btn:hover {
-            transform: scale(1.03);
-            box-shadow: 0 6px 16px rgba(37,90,167,0.28);
-            border-color: #255aa7;
-            color: #255aa7;
+            box-shadow: 0 4px 14px rgba(37,90,167,0.35);
+            transform: translateY(-2px);
             text-decoration: none !important;
         }
-        .pub-link-btn:visited { color: #255aa7; text-decoration: none !important; }
-        [data-theme="dark"] .pub-link-btn { color: #6fa3e8; border-color: rgba(255,255,255,0.2); }
-        [data-theme="dark"] .pub-link-btn:hover { color: #6fa3e8; border-color: rgba(111,163,232,0.5); }
-        [data-theme="dark"] .pub-link-btn:visited { color: #6fa3e8; }
+        .pub-link-btn:hover .pub-icon {
+            background: #d9e7f8;
+        }
+        .pub-link-btn:hover .pub-icon i {
+            color: #2a5aa7;
+        }
+        .pub-link-btn:hover .pub-text {
+            color: #2a5aa7;
+        }
+        .pub-link-btn:visited { text-decoration: none !important; }
         </style>
         """,
         unsafe_allow_html=True,
@@ -246,10 +277,17 @@ def _render_workflow_step_tabs() -> None:
 
     # Publication link buttons — pure HTML, centered flex layout
     if content["links"]:
-        links_html = "".join(
-            f"<a href='{link['url']}' target='_blank' class='pub-link-btn'>{link['label']}</a>"
-            for link in content["links"]
-        )
+        def _pub_btn(link: dict) -> str:
+            icon = link["icon"]
+            label = link["label"]
+            url = link["url"]
+            return (
+                f"<a href='{url}' target='_blank' class='pub-link-btn'>"
+                f"<span class='pub-icon'><i class='{icon}'></i></span>"
+                f"<span class='pub-text'>{label}</span>"
+                f"</a>"
+            )
+        links_html = "".join(_pub_btn(link) for link in content["links"])
         st.markdown(
             "<div style='display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin:0.5rem 0 1rem 0'>"
             + links_html

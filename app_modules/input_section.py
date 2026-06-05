@@ -312,12 +312,19 @@ def render_input_section() -> Tuple[pd.DataFrame, bool, int, str, List[str]]:
             input_summary_preview = analysis_df[preview_source].dropna().astype(str).head(3).tolist()
 
     if input_summary_ready:
-        st.info(
-            f"""
-            **Input Summary**\n
-            **{input_summary_count} {input_summary_label}** ready to process\n
-            **Preview:** {', '.join(input_summary_preview)}{'...' if input_summary_count > 3 else ''}
-            """
+        _C = "#255aa7"
+        preview_text = ", ".join(input_summary_preview) + ("..." if input_summary_count > 3 else "")
+        st.markdown(
+            f"<div style='background:linear-gradient(135deg,{_C}12 0%,{_C}04 100%);"
+            f"border-left:5px solid {_C};border-radius:12px;padding:1.25rem;"
+            f"font-size:0.95rem;line-height:1.6;'>"
+            f"<p style='font-weight:700;margin:0 0 0.4rem 0;font-size:1rem;"
+            f"font-family:Poppins,sans-serif;letter-spacing:0.02em;'>"
+            f"Input Summary</p>"
+            f"<strong>{input_summary_count} {input_summary_label}</strong> ready to process<br>"
+            f"<strong>Preview:</strong> {preview_text}"
+            f"</div>",
+            unsafe_allow_html=True,
         )
 
     return analysis_df, input_summary_ready, input_summary_count, input_summary_label, input_summary_preview
