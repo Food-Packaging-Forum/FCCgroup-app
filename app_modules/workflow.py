@@ -4,32 +4,267 @@ import textwrap
 
 import streamlit as st
 
+_WORKFLOW_TABS = [
+    {"key": "fcc_id",    "icon": "🔎", "label": "FCC Identification"},
+    {"key": "fcc_prio",  "icon": "🔬", "label": "FCCprio Prioritization"},
+    {"key": "struct_grp","icon": "🎯", "label": "Structural Grouping"},
+]
+
+_TAB_CONTENT = {
+    "fcc_id": {
+        "title": "FCC Identification",
+        "description": (
+            "Determine whether each input chemical is a food contact chemical (FCC) "
+            "by matching it against FPF's curated databases."
+        ),
+        "color": "#255aa7",
+        "sections": [
+            {
+                "heading": "Purpose",
+                "body": "Match input chemicals against the FCCdb and FCCmigex databases to determine FCC status.",
+                "list": [],
+            },
+            {
+                "heading": "Process",
+                "body": "",
+                "list": [
+                    "FCCdb lookup by CAS (12,285 chemicals)",
+                    "FCCmigex lookup by CAS (5,294 chemicals)",
+                    "Assign FCC status when matched in either database",
+                    "Record source database for traceability",
+                ],
+            },
+            {
+                "heading": "Output",
+                "body": "Binary FCC status flag and source database information for each chemical.",
+                "list": [],
+            },
+        ],
+        "links": [
+            {"label": "📄 FCCdb Publication", "url": "https://www.sciencedirect.com/science/article/pii/S0160412020321802"},
+            {"label": "📄 FCCmigex Publication", "url": "https://doi.org/10.1080/10408398.2022.2067828"},
+        ],
+    },
+    "fcc_prio": {
+        "title": "FCCprio Prioritization",
+        "description": (
+            "Assign evidence-based priority tiers to food contact chemicals based on "
+            "integrated hazard and exposure signals from the FCCprio framework."
+        ),
+        "color": "#255aa7",
+        "sections": [
+            {
+                "heading": "Purpose",
+                "body": "Rank FCCs by risk relevance so assessors can focus limited resources on the highest-priority chemicals.",
+                "list": [],
+            },
+            {
+                "heading": "Process",
+                "body": "",
+                "list": [
+                    "Look up each FCC in the FCCprio dataset",
+                    "Retrieve hazard and exposure tier assignments",
+                    "Combine signals into a single priority tier (1–4)",
+                    "Return full prioritization metadata",
+                ],
+            },
+            {
+                "heading": "Output",
+                "body": "FCCprio tier (1 = highest priority) and associated prioritization metadata per chemical.",
+                "list": [],
+            },
+        ],
+        "links": [
+            {"label": "📄 FCCprio Data (Zenodo)", "url": "https://doi.org/10.5281/zenodo.14881617"},
+        ],
+    },
+    "struct_grp": {
+        "title": "Structural Grouping",
+        "description": (
+            "Group chemicals by molecular structure to support read-across analysis "
+            "and systematic hazard prediction."
+        ),
+        "color": "#255aa7",
+        "sections": [
+            {
+                "heading": "Purpose",
+                "body": "Cluster chemicals sharing structural motifs so that hazard data can be read across within each group.",
+                "list": [],
+            },
+            {
+                "heading": "Process",
+                "body": "",
+                "list": [
+                    "Validate input SMILES or resolve from CAS via PubChem",
+                    "Apply SMARTS patterns in parallel (SMARTS method)",
+                    "Compare against curated lists (LISTS method)",
+                    "Run identifier regex searches (REGEX method)",
+                    "Compile group membership outputs",
+                ],
+            },
+            {
+                "heading": "Output",
+                "body": "Structural group labels and per-pattern match details for downstream read-across.",
+                "list": [],
+            },
+        ],
+        "links": [
+            {"label": "📦 FCCgroup on PyPI", "url": "https://pypi.org/project/fccgroup/"},
+        ],
+    },
+}
+
+
+def _render_workflow_step_tabs() -> None:
+    """Render three-step workflow as tab buttons with swappable content."""
+    active = st.session_state.get("workflow_tab", "fcc_id")
+
+    # Tab buttons
+    cols = st.columns(3)
+    for col, tab in zip(cols, _WORKFLOW_TABS):
+        with col:
+            if st.button(
+                f"{tab['icon']} {tab['label']}",
+                key=f"wf_tab_{tab['key']}",
+                use_container_width=True,
+            ):
+                st.session_state.workflow_tab = tab["key"]
+                st.rerun()
+
+    # Dynamic CSS — highlight active tab button + white-button hover for publication links
+    css_parts = []
+    for tab in _WORKFLOW_TABS:
+        is_active = tab["key"] == active
+        bg = "#255aa7" if is_active else "transparent"
+        color = "#ffffff" if is_active else "inherit"
+        border = "none" if is_active else "1px solid rgba(128,128,128,0.4)"
+        css_parts.append(
+            f"""
+            .st-key-wf_tab_{tab['key']} button {{
+                background: {bg}; color: {color}; border: {border};
+                border-radius: 12px; font-weight: 700; min-height: 2.6rem;
+                transition: all 0.3s ease !important;
+            }}
+            .st-key-wf_tab_{tab['key']} button:hover {{
+                background: {bg}; color: {color}; border: {border};
+                transform: scale(1.03); box-shadow: var(--fpf-shadow);
+            }}
+            """
+        )
+    st.markdown(f"<style>{''.join(css_parts)}</style>", unsafe_allow_html=True)
+
+    # Content for active tab
+    content = _TAB_CONTENT[active]
+    color = content["color"]
+
+    st.markdown(
+        f"""
+        <div style="margin: 1.25rem 0 1.5rem 0;">
+            <div style="font-size: 1.5rem; font-weight: 700; font-family: 'Poppins', sans-serif;
+                        margin-bottom: 0.35rem; line-height: 1.2;">
+                <span style="background: {color}; -webkit-background-clip: text;
+                             -webkit-text-fill-color: transparent; background-clip: text;">
+                    {content['title']}
+                </span>
+            </div>
+            <div style="font-size: 0.97rem; color: #556070; line-height: 1.55;">{content['description']}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Styled HTML link buttons for publications
+    st.markdown(
+        """
+        <style>
+        .pub-link-btn {
+            display: inline-block;
+            padding: 0.55rem 1.4rem;
+            background: transparent;
+            color: #255aa7;
+            border: 1px solid rgba(128,128,128,0.4);
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            font-family: 'Open Sans', 'Segoe UI', sans-serif;
+            text-decoration: none !important;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .pub-link-btn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 6px 16px rgba(37,90,167,0.28);
+            border-color: #255aa7;
+            color: #255aa7;
+            text-decoration: none !important;
+        }
+        .pub-link-btn:visited { color: #255aa7; text-decoration: none !important; }
+        [data-theme="dark"] .pub-link-btn { color: #6fa3e8; border-color: rgba(255,255,255,0.2); }
+        [data-theme="dark"] .pub-link-btn:hover { color: #6fa3e8; border-color: rgba(111,163,232,0.5); }
+        [data-theme="dark"] .pub-link-btn:visited { color: #6fa3e8; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Section info boxes — single flex container guarantees equal heights
+    box_parts = []
+    for section in content["sections"]:
+        list_html = ""
+        if section["list"]:
+            items = "".join(
+                f"<li style='margin:0.3rem 0;font-size:0.9rem'>{item}</li>"
+                for item in section["list"]
+            )
+            list_html = (
+                "<ul style='margin:0.5rem 0 0 0;padding-left:1.2rem;line-height:1.6'>"
+                + items + "</ul>"
+            )
+        body_html = (
+            f"<p style='margin:0.5rem 0 0 0;font-size:0.9rem;line-height:1.55'>{section['body']}</p>"
+            if section["body"] else ""
+        )
+        box_parts.append(
+            "<div style='flex:1;display:flex;flex-direction:column'>"
+            + f"<div style='background:linear-gradient(135deg,{color}12 0%,{color}04 100%);"
+            + f"border-left:5px solid {color};border-radius:12px;"
+            + "padding:1.25rem;flex:1;box-sizing:border-box'>"
+            + f"<p style='font-weight:700;margin:0 0 0.4rem 0;font-size:1rem;"
+            + f"font-family:Poppins,sans-serif;letter-spacing:0.02em'>"
+            + f"{section['heading']}</p>"
+            + body_html + list_html
+            + "</div>"
+            + "</div>"
+        )
+    st.markdown(
+        "<div style='display:flex;gap:1rem;align-items:stretch;margin:0.5rem 0 1rem 0'>"
+        + "".join(box_parts)
+        + "</div>",
+        unsafe_allow_html=True,
+    )
+
+    # Publication link buttons — pure HTML, centered flex layout
+    if content["links"]:
+        links_html = "".join(
+            f"<a href='{link['url']}' target='_blank' class='pub-link-btn'>{link['label']}</a>"
+            for link in content["links"]
+        )
+        st.markdown(
+            "<div style='display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin:0.5rem 0 1rem 0'>"
+            + links_html
+            + "</div>",
+            unsafe_allow_html=True,
+        )
+
 
 def display_workflow_explanation() -> None:
     """Display detailed workflow explanation."""
-    st.markdown(
-        """
-        <div class="workflow-section-title">
-            📖 <span class="highlight">Detailed Workflow Information</span>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        """
-        <div class="workflow-intro">
-        This tool implements a comprehensive chemical identification and grouping pipeline for Food Contact Chemicals (FCCs).
-        The workflow integrates FPF's internal resources with structural analysis to systematically classify and prioritize chemicals.
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
 
     st.markdown(
         """
         <div class="workflow-subsection-title">
-            🧭 <span class="highlight">How The UI Works</span>
+            <span class="highlight">How to use this tool</span>
         </div>
         """,
         unsafe_allow_html=True,
@@ -38,24 +273,22 @@ def display_workflow_explanation() -> None:
     ui_steps = [
         {
             "number": "0",
-            "emoji": "⚙️",
-            "title": "Start from the sidebar",
+            "title": "Navigation and configuration",
             "color": "#255aa7",
             "content": [
-                "Click <strong>Explore Detailed Workflow</strong> to open this page.",
-                "Click <strong>Back to Analysis</strong> (top of this page) to return to the main analysis screen.",
-                "In <strong>Grouping Configuration</strong>, choose one or more methods:",
+                "Click 📖 <strong>Detailed Workflow</strong> (top of the page) to open this page.",
+                "Click 🔬 <strong>Analysis</strong> (top of this page) to return to the main analysis screen.",
+            ] + [[
+                "In <strong>Grouping Configuration</strong> (shown at the top in developer mode), choose one or more methods:",
                 "<strong>SMARTS</strong>: structure-based grouping",
                 "<strong>LISTS</strong>: list comparison grouping",
                 "<strong>REGEX</strong>: name/identifier text pattern grouping",
-                "If no method is selected, SMARTS is used by default.",
-            ]
+                "If no method is selected, SMARTS is used by default."] if st.session_state.is_admin else []][0]
         },
         {
             "number": "1",
-            "emoji": "📥",
             "title": "Add your input data (Step 1)",
-            "color": "#2c3e61",
+            "color": "#255aa7",
             "content": [
                 "Choose <strong>Manual Entry</strong> for quick checks.",
                 "Choose <strong>File Upload</strong> for Excel/CSV batches.",
@@ -63,13 +296,13 @@ def display_workflow_explanation() -> None:
                 "You can click <strong>Try Sample Data</strong> to test the full flow instantly.",
                 "In upload mode, set the header row, select the sheet (for Excel), then map columns.",
                 "You are ready when the green <strong>Input Summary</strong> box appears.",
+                "To clear your input and start over, simply refresh the page or click <strong>Clear Data</strong>."
             ]
         },
         {
             "number": "2",
-            "emoji": "🚀",
             "title": "Run analysis (Step 2)",
-            "color": "#356fb6",
+            "color": "#255aa7",
             "content": [
                 "Click <strong>Start Analysis</strong>.",
                 "The button stays disabled until valid input and at least one grouping method are available.",
@@ -82,20 +315,18 @@ def display_workflow_explanation() -> None:
         },
         {
             "number": "3",
-            "emoji": "📊",
             "title": "Explore results and export (Step 3)",
-            "color": "#1f4d90",
+            "color": "#255aa7",
             "content": [
                 "Read the <strong>Summary Dashboard</strong> first (total chemicals, valid structures, FCC status, tiers, groups).",
-                "Open <strong>Filter Options</strong> to focus results by:",
-                "FCC status",
-                "FCCprio tier",
-                "Groups of concern",
-                "For multiple groups of concern, choose:",
-                "<strong>OR</strong> to match any selected group",
-                "<strong>AND</strong> to require all selected groups",
+                "Open <strong>Filter Options</strong> to focus results by:"
+                "<ul><li style=\"margin: 0.6rem 0;\">FCC status</li>"
+                "<li style=\"margin: 0.6rem 0;\">FCCprio tier</li>"
+                "<li style=\"margin: 0.6rem 0;\">Groups of concern</li></ul>",
+                "For multiple groups of concern, choose:<ul><li><strong>OR</strong> to match any selected group</li>"
+                "<li><strong>AND</strong> to require all selected groups</li></ul>",
                 "Download final results as <strong>CSV</strong> or <strong>Excel</strong>.",
-                "Click <strong>Start New Analysis</strong> to clear results and begin another run.",
+                "To clear your input and start over, simply refresh the page or click <strong>Clear Data</strong>."
             ]
         },
     ]
@@ -112,7 +343,6 @@ def display_workflow_explanation() -> None:
                 border-left: 5px solid {step['color']};
             ">
                 <div style="display: flex; align-items: center; margin-bottom: 1rem;">
-                    <div style="font-size: 2.5rem; margin-right: 1rem;">{step['emoji']}</div>
                     <div>
                         <div style="font-size: 0.85rem; font-weight: 600; color: {step['color']}; letter-spacing: 0.5px;">STEP {step['number']}</div>
                         <div style="font-size: 1.2rem; font-weight: 700;">{step['title']}</div>
@@ -176,141 +406,16 @@ def display_workflow_explanation() -> None:
         unsafe_allow_html=True,
     )
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown(
-        textwrap.dedent(
-            """
-            <style>
-                .common-blockers-box {
-                    background: rgba(37, 90, 167, 0.08);
-                    border-left: 5px solid #255aa7;
-                    border-radius: 12px;
-                    padding: 1.5rem;
-                    box-shadow: 0 2px 8px rgba(37, 90, 167, 0.15);
-                }
-                .common-blockers-title {
-                    font-weight: 700;
-                    margin-bottom: 0.5rem;
-                }
-                .common-blockers-body {
-                    font-size: 0.95rem;
-                    line-height: 1.6;
-                    opacity: 0.85;
-                }
-            </style>
-            <div class="common-blockers-box">
-                <div style="display: flex; align-items: flex-start; gap: 1rem;">
-                    <div style="font-size: 1.8rem; flex-shrink: 0;">⚡</div>
-                    <div>
-                        <div class="common-blockers-title">Common blockers</div>
-                        <div class="common-blockers-body">
-                            Invalid identifier format, missing column mapping in upload mode, or trying to run without a selected grouping method.
-                        </div>
-                    </div>
-                </div>
-            </div>
-            """
-        ),
-        unsafe_allow_html=True,
-    )
-
     st.markdown(
         """
         <div class="workflow-subsection-title">
-            🔄 <span class="highlight">Three-Step Process</span>
+            <span class="highlight">Three-Step Process</span>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    col1, col2, col3 = st.columns(3)
 
-    with col1:
-        st.markdown(
-            """
-            <div class="workflow-card workflow-card-identification">
-                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔎</div>
-                <strong style="font-size: 1.2rem; display: block; margin-bottom: 0.6rem;">FCC Identification</strong>
-                <p class="brief-description">
-                    Match against FCCdb and FCCmigex databases to identify food contact chemicals.
-                </p>
-                <div class="details-block">
-                    <p><strong>Purpose</strong></p>
-                    <p>Determine whether a chemical is a food contact chemical based on FPF databases.</p>
-                    <p style="margin-top: 0.65rem;"><strong>Process</strong></p>
-                    <ul>
-                        <li>FCCdb matching by CAS</li>
-                        <li>FCCmigex matching by CAS</li>
-                        <li>Assign FCC status if matched in either</li>
-                    </ul>
-                    <p style="margin-top: 0.65rem;"><strong>Output</strong></p>
-                    <p>Binary FCC status and source information.</p>
-                </div>
-                <div class="workflow-button-container">
-                    <a href="https://www.sciencedirect.com/science/article/pii/S0160412020321802" target="_blank" class="workflow-button">📄 FCCdb Paper</a>
-                    <a href="https://doi.org/10.1080/10408398.2022.2067828" target="_blank" class="workflow-button">📄 FCCmigex Paper</a>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    with col2:
-        st.markdown(
-            """
-            <div class="workflow-card workflow-card-prioritization">
-                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔬</div>
-                <strong style="font-size: 1.2rem; display: block; margin-bottom: 0.6rem;">FCCprio Prioritization</strong>
-                <p class="brief-description">
-                    Assign priority tiers based on hazard and exposure data.
-                </p>
-                <div class="details-block">
-                    <p><strong>Purpose</strong></p>
-                    <p>Prioritize food contact chemicals based on hazard and exposure signals.</p>
-                    <p style="margin-top: 0.65rem;"><strong>Process</strong></p>
-                    <ul>
-                        <li>Match against FCCprio records</li>
-                        <li>Assign priority tier</li>
-                        <li>Return prioritization metadata</li>
-                    </ul>
-                    <p style="margin-top: 0.65rem;"><strong>Output</strong></p>
-                    <p>FCCprio tier and prioritization metadata.</p>
-                </div>
-                <div class="workflow-button-container">
-                    <a href="https://doi.org/10.5281/zenodo.14881617" target="_blank" class="workflow-button">📄 FCCprio Data</a>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    with col3:
-        st.markdown(
-            """
-            <div class="workflow-card workflow-card-grouping">
-                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎯</div>
-                <strong style="font-size: 1.2rem; display: block; margin-bottom: 0.6rem;">Structural Grouping</strong>
-                <p class="brief-description">
-                    Group by molecular structure using SMARTS patterns.
-                </p>
-                <div class="details-block">
-                    <p><strong>Purpose</strong></p>
-                    <p>Group chemicals by structural motifs to support read-across analysis.</p>
-                    <p style="margin-top: 0.65rem;"><strong>Process</strong></p>
-                    <ul>
-                        <li>Validate or resolve SMILES</li>
-                        <li>Apply SMARTS patterns in parallel</li>
-                        <li>Compile group membership outputs</li>
-                    </ul>
-                    <p style="margin-top: 0.65rem;"><strong>Output</strong></p>
-                    <p>Structural grouping labels and pattern-level matches.</p>
-                </div>
-                <div class="workflow-button-container">
-                    <a href="https://pypi.org/project/fccgroup/" target="_blank" class="workflow-button">📄 FCCgroup PyPI</a>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+    _render_workflow_step_tabs()
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -318,26 +423,30 @@ def display_workflow_explanation() -> None:
     st.markdown(
         """
         <div class="workflow-subsection-title">
-            🎯 <span class="highlight">Common Use Cases</span>
+            <span class="highlight">Common Use Cases</span>
         </div>
         """,
         unsafe_allow_html=True,
     )
     use_cases = [
-        ("🔍 Food Contact Screening", "Determine if chemicals are used in food contact materials"),
-        ("⚠️ Risk Prioritization", "Identify high-priority chemicals for assessment"),
-        ("🧬 Structural Read-Across", "Group chemicals by structural features for hazard prediction"),
-        ("📊 Research Analysis", "Systematic classification for publications and reports"),
-        ("📋 Regulatory Compliance", "Support safety assessments with integrated FPF data"),
+        ("Food Contact Screening", "Determine if chemicals are used in food contact materials"),
+        ("Hazard Prioritization", "Identify high-priority chemicals for assessment"),
+        ("Structural Read-Across", "Group chemicals by structural features for hazard prediction"),
+        ("Research Analysis", "Systematic classification for publications and reports"),
+        ("Regulatory Compliance", "Support safety assessments with integrated FPF data"),
     ]
 
-    for icon_title, description in use_cases:
-        st.markdown(
-            f"""
-            <div class="use-case-item">
-                <div class="use-case-title">{icon_title}</div>
-                <div class="use-case-description">{description}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+    _COLOR = "#255aa7"
+    use_cases_html = "".join(
+        f"<div style='margin:0.75rem 0;'>"
+        f"<div style='background:linear-gradient(135deg,{_COLOR}12 0%,{_COLOR}04 100%);"
+        f"border-left:5px solid {_COLOR};border-radius:12px;padding:1.25rem;"
+        f"font-size:0.95rem;line-height:1.55;'>"
+        f"<p style='font-weight:700;margin:0 0 0.4rem 0;font-size:1rem;"
+        f"font-family:Poppins,sans-serif;letter-spacing:0.02em;'>"
+        f"{icon_title}</p>"
+        f"{description}</div>"
+        f"</div>"
+        for icon_title, description in use_cases
+    )
+    st.markdown(use_cases_html, unsafe_allow_html=True)

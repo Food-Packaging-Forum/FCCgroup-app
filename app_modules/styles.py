@@ -653,7 +653,21 @@ GLOBAL_CSS = """
         }
     }
 
-    /* Clear and download/publication buttons — white button hover: zoom + shadow */
+    /* Download buttons need explicit transition — they render as .stDownloadButton, not .stButton,
+       so the global .stButton > button transition rule does not reach them. */
+    .st-key-download_csv_button button,
+    .st-key-download_excel_button button {
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease !important;
+    }
+
+    /* wf_tab buttons: ensure 0.3s transition wins over Streamlit's built-in shorter default */
+    [class*="st-key-wf_tab_"] button {
+        transition: all 0.3s ease !important;
+    }
+
+    /* Clear and download buttons — hover: zoom + shadow, no background change */
     .st-key-new_analysis_manual_button button:hover,
     .st-key-new_analysis_upload_button button:hover,
     .st-key-clear_data_results_button button:hover,
@@ -661,6 +675,7 @@ GLOBAL_CSS = """
     .st-key-download_excel_button button:hover {
         transform: scale(1.03);
         box-shadow: var(--fpf-shadow);
+        background: var(--background-color);
     }
 
     /* Hide sidebar and its toggle completely */
@@ -870,7 +885,7 @@ def apply_mode_button_styles(is_manual_mode: bool) -> None:
     manual_border = "none" if is_manual_mode else "1px solid rgba(128, 128, 128, 0.4)"
     manual_shadow = "0 6px 16px rgba(37, 90, 167, 0.28)" if is_manual_mode else "0 2px 8px rgba(0, 0, 0, 0.08)"
 
-    upload_background = "linear-gradient(135deg, #255aa7 0%, #2c3e61 100%)" if is_upload_mode else "transparent"
+    upload_background = "#255aa7" if is_upload_mode else "transparent"
     upload_color = "#ffffff" if is_upload_mode else "inherit"
     upload_border = "none" if is_upload_mode else "1px solid rgba(128, 128, 128, 0.4)"
     upload_shadow = "0 6px 16px rgba(37, 90, 167, 0.28)" if is_upload_mode else "0 2px 8px rgba(0, 0, 0, 0.08)"
