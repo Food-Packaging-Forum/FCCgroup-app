@@ -21,6 +21,9 @@ def initialize_session_state() -> None:
         "grouper_instance": None,
         "grouping_methods": [GroupingMethod.SMARTS.value],
         "is_admin": os.environ.get("IS_FCCGROUP_ADMIN", "").strip().lower() == "true",
+        "workflow_tab": "fcc_id",
+        "file_upload_counter": 0,
+        "text_area_counter": 0,
     }
 
     for key, value in defaults.items():

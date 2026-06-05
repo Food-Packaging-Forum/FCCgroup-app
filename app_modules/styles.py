@@ -19,7 +19,7 @@ GLOBAL_CSS = """
         --fpf-border: #cfd8e3;
         --fpf-text: #1f2a37;
         --fpf-muted: #556070;
-        --fpf-gradient: linear-gradient(135deg, #255aa7 0%, #2c3e61 100%);
+        --fpf-gradient: #255aa7;
         --fpf-shadow: 0 6px 16px rgba(37, 90, 167, 0.28);
         --fpf-shadow-strong: 0 8px 18px rgba(37, 90, 167, 0.36);
     }
@@ -139,9 +139,11 @@ GLOBAL_CSS = """
     }
 
     .st-key-sidebar_workflow_button button:hover {
-        transform: translateY(-1px);
+        transform: scale(1.03);
         box-shadow: var(--fpf-shadow-strong);
-        filter: saturate(1.1);
+        background: var(--fpf-gradient);
+        color: #ffffff;
+        border: none;
     }
 
     .st-key-sidebar_workflow_button button:focus-visible {
@@ -161,9 +163,17 @@ GLOBAL_CSS = """
         box-shadow: 0 10px 24px rgba(37, 90, 167, 0.34);
     }
 
-    .st-key-start_analysis_button button:hover {
-        transform: translateY(-1px);
+    .st-key-start_analysis_button button:not(:disabled):hover {
+        transform: scale(1.03);
         box-shadow: 0 12px 28px rgba(37, 90, 167, 0.42);
+        background: var(--fpf-gradient);
+        color: #ffffff;
+        border: none;
+    }
+
+    .st-key-start_analysis_button button:disabled {
+        cursor: not-allowed;
+        pointer-events: auto;
     }
 
     .cta-hint {
@@ -189,32 +199,26 @@ GLOBAL_CSS = """
         box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
     }
 
-    .process-step {
-        background: var(--fpf-gradient);
-        color: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        text-align: center;
-        box-shadow: 0 4px 10px rgba(37, 90, 167, 0.3);
-        transition: all 0.3s ease;
+    /* Unblock Streamlit's inner container chain so full-width elements can escape.
+       stMain is intentionally excluded — it is the scroll container. */
+    .block-container,
+    div[data-testid="stVerticalBlock"],
+    div[data-testid="stVerticalBlockBorderWrapper"],
+    div[data-testid="element-container"],
+    div[data-testid="stMarkdownContainer"] {
+        overflow: visible !important;
     }
 
-    .process-step:hover {
-        transform: scale(1.02);
-        box-shadow: 0 6px 15px rgba(37, 90, 167, 0.4);
-    }
-
-    .process-step h3 {
-        margin: 0;
-        font-size: 1.3rem;
-        font-weight: 600;
-    }
-
-    .process-step p {
+    .section-gradient-divider {
+        position: relative;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100vw;
+        height: 4rem;
+        background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.055) 100%);
         margin: 0.5rem 0 0 0;
-        font-size: 0.95rem;
-        opacity: 0.95;
+        pointer-events: none;
+        display: block;
     }
 
     .info-box {
@@ -244,6 +248,19 @@ GLOBAL_CSS = """
         box-shadow: 0 2px 4px rgba(44, 62, 97, 0.1);
     }
 
+    .metric-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 640px) {
+        .metric-cards-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
     .metric-card {
         background: var(--secondary-background-color);
         border-radius: 12px;
@@ -252,6 +269,10 @@ GLOBAL_CSS = """
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         border: 1px solid rgba(128, 128, 128, 0.15);
         transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
 
     .metric-card:hover {
@@ -420,7 +441,6 @@ GLOBAL_CSS = """
         margin: 1rem 0;
         border-radius: 12px;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        cursor: pointer;
         position: relative;
         overflow: hidden;
     }
@@ -466,7 +486,6 @@ GLOBAL_CSS = """
         font-size: 2.8rem;
         font-weight: 700;
         font-family: 'Poppins', 'Segoe UI', sans-serif;
-        text-align: center;
         margin: 2rem 0 2.5rem 0;
         padding: 1rem 0;
     }
@@ -482,7 +501,6 @@ GLOBAL_CSS = """
         font-size: 1.8rem;
         font-weight: 700;
         font-family: 'Poppins', 'Segoe UI', sans-serif;
-        text-align: center;
         margin: 2.5rem 0 2rem 0;
         padding: 0.5rem 0;
     }
@@ -494,19 +512,9 @@ GLOBAL_CSS = """
         background-clip: text;
     }
 
-    .workflow-card-identification {
-        background: linear-gradient(135deg, #255aa7 0%, #2c3e61 100%);
-        box-shadow: 0 4px 10px rgba(37, 90, 167, 0.3);
-    }
-
     .workflow-card-prioritization {
-        background: linear-gradient(135deg, #1f4d90 0%, #2c3e61 100%);
+        background: #2c3e61;
         box-shadow: 0 4px 10px rgba(31, 77, 144, 0.3);
-    }
-
-    .workflow-card-grouping {
-        background: linear-gradient(135deg, #356fb6 0%, #255aa7 100%);
-        box-shadow: 0 4px 10px rgba(37, 90, 167, 0.3);
     }
 
     .workflow-button {
@@ -623,6 +631,15 @@ GLOBAL_CSS = """
         }
     }
 
+    [data-theme="dark"] .section-gradient-divider {
+        background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.18) 100%);
+    }
+    @media (prefers-color-scheme: dark) {
+        .section-gradient-divider {
+            background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.18) 100%);
+        }
+    }
+
     [data-theme="dark"] .timeline-item { border-left-color: rgba(255, 255, 255, 0.1); }
     @media (prefers-color-scheme: dark) { .timeline-item { border-left-color: rgba(255, 255, 255, 0.1); } }
 
@@ -664,6 +681,125 @@ GLOBAL_CSS = """
         }
     }
 
+    /* Download buttons need explicit transition — they render as .stDownloadButton, not .stButton,
+       so the global .stButton > button transition rule does not reach them. */
+    .st-key-download_csv_button button,
+    .st-key-download_excel_button button {
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease !important;
+    }
+
+    /* wf_tab buttons: ensure 0.3s transition wins over Streamlit's built-in shorter default */
+    [class*="st-key-wf_tab_"] button {
+        transition: all 0.3s ease !important;
+    }
+
+    /* Clear and download buttons — hover: zoom + shadow, no background change */
+    .st-key-new_analysis_manual_button button:hover,
+    .st-key-new_analysis_upload_button button:hover,
+    .st-key-clear_data_results_button button:hover,
+    .st-key-download_csv_button button:hover,
+    .st-key-download_excel_button button:hover {
+        transform: scale(1.03);
+        box-shadow: var(--fpf-shadow);
+        background: var(--background-color);
+    }
+
+    /* Hide sidebar and its toggle completely */
+    section[data-testid="stSidebar"] { display: none !important; }
+    [data-testid="collapsedControl"] { display: none !important; }
+
+    /* Sample data button — matches main workflow button style */
+    .st-key-sample_data_button button {
+        background: var(--fpf-gradient);
+        color: #ffffff;
+        border: none;
+        border-radius: 12px;
+        min-height: 2.6rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        box-shadow: var(--fpf-shadow);
+    }
+
+    .st-key-sample_data_button button:hover {
+        transform: scale(1.03);
+        box-shadow: var(--fpf-shadow-strong);
+        background: var(--fpf-gradient);
+        color: #ffffff;
+        border: none;
+    }
+
+    .st-key-sample_data_button button:focus-visible {
+        outline: 3px solid rgba(37, 90, 167, 0.35);
+        outline-offset: 1px;
+    }
+
+    /* Main workflow button */
+    .st-key-main_workflow_button button {
+        background: var(--fpf-gradient);
+        color: #ffffff;
+        border: none;
+        border-radius: 12px;
+        min-height: 2.6rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        box-shadow: var(--fpf-shadow);
+    }
+
+    .st-key-main_workflow_button button:hover {
+        transform: scale(1.03);
+        box-shadow: var(--fpf-shadow-strong);
+        background: var(--fpf-gradient);
+        color: #ffffff;
+        border: none;
+    }
+
+    .st-key-main_workflow_button button:focus-visible {
+        outline: 3px solid rgba(37, 90, 167, 0.35);
+        outline-offset: 1px;
+    }
+
+    /* Grouping config panel */
+    .st-key-grouping_config_panel {
+        background: rgba(37, 90, 167, 0.06);
+        border: 1px solid var(--fpf-border);
+        border-radius: 12px;
+        padding: 0.75rem 1.25rem 0.5rem;
+        margin: 0 0 1.25rem 0;
+    }
+
+    [data-theme="dark"] .st-key-grouping_config_panel {
+        background: rgba(37, 90, 167, 0.1);
+        border-color: rgba(37, 90, 167, 0.3);
+    }
+
+    /* Page footer */
+    .page-footer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2rem;
+        padding: 0.5rem 0 1rem 0;
+        flex-wrap: wrap;
+    }
+
+    .page-footer img.fpf-logo {
+        height: 36px;
+        width: auto;
+    }
+
+    .page-footer-license {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .page-footer-text {
+        font-size: 0.85rem;
+        color: var(--fpf-muted);
+    }
+
     @media (max-width: 768px) {
         .main-header {
             font-size: 2.2rem;
@@ -688,13 +824,13 @@ def apply_global_styles() -> None:
     st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 
-def render_page_header() -> None:
-    """Render app title area."""
+def render_page_header(active_page: str = "main") -> tuple[bool, bool]:
+    """Render app title and nav tabs. Returns (go_to_workflow, go_to_analysis)."""
     image_path = Path(__file__).resolve().parents[1] / "assets" / "FCCprio_logo_signet.svg"
     image_src = _svg_as_data_uri(image_path)
-    
+
     st.markdown(
-        f'<h1 class="main-header"><img src="{image_src}" alt="FCCprio logo"><span class="highlight">FCC Grouping Tool</span></h1>',
+        f'<h1 class="main-header"><img src="{image_src}" alt="FCCprio logo"><span class="highlight">FCCgroup</span></h1>',
         unsafe_allow_html=True,
     )
 
@@ -703,12 +839,65 @@ def render_page_header() -> None:
         unsafe_allow_html=True,
     )
 
+    on_workflow = active_page == "workflow"
+    analysis_bg = "#255aa7" if not on_workflow else "transparent"
+    analysis_color = "#ffffff" if not on_workflow else "inherit"
+    analysis_border = "none" if not on_workflow else "1px solid rgba(128,128,128,0.4)"
+    workflow_bg = "#255aa7" if on_workflow else "transparent"
+    workflow_color = "#ffffff" if on_workflow else "inherit"
+    workflow_border = "none" if on_workflow else "1px solid rgba(128,128,128,0.4)"
+
     st.markdown(
-        """
-        <div class="info-box">
-            This tool helps researchers, regulators, and supply-chain professionals rapidly screen and organize food contact chemicals using integrated FPF resources.
-            <br>
-            <strong>Follow each of the three steps below</strong> to submit your data, run the automated analysis, and explore grouped results.
+        f"""
+        <style>
+        .st-key-nav_analysis_button button {{
+            background: {analysis_bg}; color: {analysis_color}; border: {analysis_border};
+            border-radius: 12px; font-weight: 700; min-height: 2.4rem;
+        }}
+        .st-key-nav_analysis_button button:hover {{
+            background: {analysis_bg}; color: {analysis_color}; border: {analysis_border};
+            transform: scale(1.03); box-shadow: var(--fpf-shadow);
+        }}
+        .st-key-nav_workflow_button button {{
+            background: {workflow_bg}; color: {workflow_color}; border: {workflow_border};
+            border-radius: 12px; font-weight: 700; min-height: 2.4rem;
+        }}
+        .st-key-nav_workflow_button button:hover {{
+            background: {workflow_bg}; color: {workflow_color}; border: {workflow_border};
+            transform: scale(1.03); box-shadow: var(--fpf-shadow);
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    _, center_col, _ = st.columns([1, 2, 1])
+    with center_col:
+        col_a, col_w = st.columns(2)
+        with col_a:
+            go_to_analysis = st.button("🔬 Analysis", key="nav_analysis_button", use_container_width=True)
+        with col_w:
+            go_to_workflow = st.button("📖 Detailed Workflow", key="nav_workflow_button", use_container_width=True)
+
+    return go_to_workflow, go_to_analysis
+
+
+def render_footer() -> None:
+    """Render horizontal footer with logo and license."""
+    fpf_logo_path = Path(__file__).resolve().parents[1] / "assets" / "fpf_logo_RGB_vector_SVG.svg"
+    fpf_logo_src = _svg_as_data_uri(fpf_logo_path)
+
+    st.markdown("---")
+    st.markdown(
+        f"""
+        <div class="page-footer">
+            <img src="{fpf_logo_src}" class="fpf-logo" alt="Food Packaging Forum">
+            <div class="page-footer-license">
+                <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" style="line-height:0;">
+                    <img src="https://licensebuttons.net/l/by/4.0/88x31.png" alt="CC BY 4.0">
+                </a>
+                <span class="page-footer-text">© 2026 Food Packaging Forum — CC BY 4.0</span>
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -719,12 +908,12 @@ def apply_mode_button_styles(is_manual_mode: bool) -> None:
     """Style the mode selector buttons according to selected mode."""
     is_upload_mode = not is_manual_mode
 
-    manual_background = "linear-gradient(135deg, #255aa7 0%, #2c3e61 100%)" if is_manual_mode else "transparent"
+    manual_background = "#255aa7" if is_manual_mode else "transparent"
     manual_color = "#ffffff" if is_manual_mode else "inherit"
     manual_border = "none" if is_manual_mode else "1px solid rgba(128, 128, 128, 0.4)"
     manual_shadow = "0 6px 16px rgba(37, 90, 167, 0.28)" if is_manual_mode else "0 2px 8px rgba(0, 0, 0, 0.08)"
 
-    upload_background = "linear-gradient(135deg, #255aa7 0%, #2c3e61 100%)" if is_upload_mode else "transparent"
+    upload_background = "#255aa7" if is_upload_mode else "transparent"
     upload_color = "#ffffff" if is_upload_mode else "inherit"
     upload_border = "none" if is_upload_mode else "1px solid rgba(128, 128, 128, 0.4)"
     upload_shadow = "0 6px 16px rgba(37, 90, 167, 0.28)" if is_upload_mode else "0 2px 8px rgba(0, 0, 0, 0.08)"
@@ -789,11 +978,27 @@ def apply_mode_button_styles(is_manual_mode: bool) -> None:
             box-shadow: {manual_shadow};
         }}
 
+        .st-key-mode_manual_button button:hover {{
+            background: {manual_background};
+            color: {manual_color};
+            border: {manual_border};
+            box-shadow: var(--fpf-shadow-strong);
+            transform: scale(1.03);
+        }}
+
         .st-key-mode_upload_button button {{
             background: {upload_background};
             color: {upload_color};
             border: {upload_border};
             box-shadow: {upload_shadow};
+        }}
+
+        .st-key-mode_upload_button button:hover {{
+            background: {upload_background};
+            color: {upload_color};
+            border: {upload_border};
+            box-shadow: var(--fpf-shadow-strong);
+            transform: scale(1.03);
         }}
         </style>
         """,
