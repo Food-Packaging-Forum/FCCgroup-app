@@ -29,20 +29,20 @@ def _render_process_section(analysis_df, input_summary_ready: bool) -> bool:
     """Render processing call-to-action and return button state."""
     st.markdown(
         """
-        <div class="process-step">
-            <h3>Step 2: Analyze Chemicals</h3>
-            <p>Run the comprehensive grouping pipeline</p>
-        </div>
+        <div class="section-gradient-divider"></div>
+        <h2 class="workflow-section-title">
+            <span class="highlight">Step 2: Analyze Chemicals</span>
+        </h2>
         """,
         unsafe_allow_html=True,
     )
 
     st.markdown(
-        '<p style="text-align: center;">When your input is ready, click <b>🚀 Start Analysis</b> to launch automated grouping.</p>',
+        '<p>When your input is ready, click <b>🚀 Start Analysis</b> to launch automated grouping.</p>',
         unsafe_allow_html=True,
     )
-    _, center_col, _ = st.columns([1, 2, 1])
-    with center_col:
+    col , _, _ = st.columns([2, 1, 1])
+    with col:
         return st.button(
             "🚀 Start Analysis",
             type="primary",

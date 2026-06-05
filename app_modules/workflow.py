@@ -443,8 +443,7 @@ def display_workflow_explanation() -> None:
         ),
         unsafe_allow_html=True,
     )
-    st.markdown("")
-    st.markdown("---")
+    st.markdown('<div class="section-gradient-divider"></div>', unsafe_allow_html=True)
 
     st.markdown(
         """
@@ -457,9 +456,8 @@ def display_workflow_explanation() -> None:
 
     _render_workflow_step_tabs()
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown('<div class="section-gradient-divider"></div>', unsafe_allow_html=True)
 
-    st.markdown("---")
     st.markdown(
         """
         <div class="workflow-subsection-title">

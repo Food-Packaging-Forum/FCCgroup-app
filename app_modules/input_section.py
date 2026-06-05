@@ -235,10 +235,9 @@ def render_input_section() -> Tuple[pd.DataFrame, bool, int, str, List[str]]:
     """Render full input section and return analysis dataframe + input summary details."""
     st.markdown(
         """
-        <div class="process-step">
-            <h3>Step 1: Add Input Data</h3>
-            <p>Choose one input path before running the analysis</p>
-        </div>
+        <h2 class="workflow-section-title">
+            <span class="highlight">Step 1: Add Input Data</span>
+        </h2>
         """,
         unsafe_allow_html=True,
     )

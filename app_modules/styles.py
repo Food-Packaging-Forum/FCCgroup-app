@@ -163,12 +163,17 @@ GLOBAL_CSS = """
         box-shadow: 0 10px 24px rgba(37, 90, 167, 0.34);
     }
 
-    .st-key-start_analysis_button button:hover {
+    .st-key-start_analysis_button button:not(:disabled):hover {
         transform: scale(1.03);
         box-shadow: 0 12px 28px rgba(37, 90, 167, 0.42);
         background: var(--fpf-gradient);
         color: #ffffff;
         border: none;
+    }
+
+    .st-key-start_analysis_button button:disabled {
+        cursor: not-allowed;
+        pointer-events: auto;
     }
 
     .cta-hint {
@@ -194,27 +199,26 @@ GLOBAL_CSS = """
         box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
     }
 
-    .process-step {
-        background: var(--fpf-gradient);
-        color: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        text-align: center;
-        box-shadow: 0 4px 10px rgba(37, 90, 167, 0.3);
-        transition: all 0.3s ease;
+    /* Unblock Streamlit's inner container chain so full-width elements can escape.
+       stMain is intentionally excluded — it is the scroll container. */
+    .block-container,
+    div[data-testid="stVerticalBlock"],
+    div[data-testid="stVerticalBlockBorderWrapper"],
+    div[data-testid="element-container"],
+    div[data-testid="stMarkdownContainer"] {
+        overflow: visible !important;
     }
 
-    .process-step h3 {
-        margin: 0;
-        font-size: 1.3rem;
-        font-weight: 600;
-    }
-
-    .process-step p {
+    .section-gradient-divider {
+        position: relative;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100vw;
+        height: 4rem;
+        background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.055) 100%);
         margin: 0.5rem 0 0 0;
-        font-size: 0.95rem;
-        opacity: 0.95;
+        pointer-events: none;
+        display: block;
     }
 
     .info-box {
@@ -482,7 +486,6 @@ GLOBAL_CSS = """
         font-size: 2.8rem;
         font-weight: 700;
         font-family: 'Poppins', 'Segoe UI', sans-serif;
-        text-align: center;
         margin: 2rem 0 2.5rem 0;
         padding: 1rem 0;
     }
@@ -625,6 +628,15 @@ GLOBAL_CSS = """
     @media (prefers-color-scheme: dark) {
         hr {
             background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+        }
+    }
+
+    [data-theme="dark"] .section-gradient-divider {
+        background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.18) 100%);
+    }
+    @media (prefers-color-scheme: dark) {
+        .section-gradient-divider {
+            background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.18) 100%);
         }
     }
 
@@ -970,7 +982,7 @@ def apply_mode_button_styles(is_manual_mode: bool) -> None:
             background: {manual_background};
             color: {manual_color};
             border: {manual_border};
-            box-shadow: {manual_shadow};
+            box-shadow: var(--fpf-shadow-strong);
             transform: scale(1.03);
         }}
 
@@ -985,7 +997,7 @@ def apply_mode_button_styles(is_manual_mode: bool) -> None:
             background: {upload_background};
             color: {upload_color};
             border: {upload_border};
-            box-shadow: {upload_shadow};
+            box-shadow: var(--fpf-shadow-strong);
             transform: scale(1.03);
         }}
         </style>

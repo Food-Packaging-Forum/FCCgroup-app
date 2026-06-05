@@ -30,10 +30,10 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
 
     st.markdown(
         """
-        <div class="process-step">
-            <h3>Step 3: Explore Results</h3>
-            <p>Review classifications and download your data</p>
-        </div>
+        <div class="section-gradient-divider"></div>
+        <h2 class="workflow-section-title">
+            <span class="highlight">Step 3: Explore Results</span>
+        </h2>
         """,
         unsafe_allow_html=True,
     )
