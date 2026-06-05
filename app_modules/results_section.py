@@ -38,7 +38,14 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
         unsafe_allow_html=True,
     )
 
-    st.markdown("### 📊 Summary Dashboard")
+    st.markdown(
+        """
+        <h3 class="workflow-subsection-title">
+            <span class="highlight">Summary Dashboard</span>
+        </h3>
+        """,
+        unsafe_allow_html=True,
+    )
 
     total_count = len(results_df)
     metrics = [("Total Chemicals", total_count, "🧪")]
@@ -53,7 +60,7 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
     fcc_tier_col = "Tier of FCCprio"
 
     if fcc_status_col in results_df.columns:
-        food_contact_count = int(results_df[fcc_status_col].apply(_has_non_empty_value).sum())
+        food_contact_count = int(results_df[fcc_status_col].apply(lambda x: x=="Yes").sum())
         metrics.append(("Food Contact", f"{food_contact_count}/{total_count}", "🗄️"))
 
     if fcc_tier_col in results_df.columns:
@@ -64,84 +71,97 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
         groups_count = int(results_df["Groups of concern"].apply(_has_non_empty_value).sum())
         metrics.append(("With Groups", f"{groups_count}/{total_count}", "🔬"))
 
-    cols = st.columns(len(metrics))
-    for col, (label, value, icon) in zip(cols, metrics):
-        with col:
-            st.markdown(
-                f"""
-                <div class="metric-card">
-                    <div class="metric-card-icon">{icon}</div>
-                    <div class="metric-card-value">{value}</div>
-                    <div class="metric-card-label">{label}</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
+    results_df[["Tier of FCCprio", "Groups of concern"]] = results_df[["Tier of FCCprio", "Groups of concern"]].replace("", "NA")
+
+    cards_html = "".join(
+        f'<div class="metric-card">'
+        f'<div class="metric-card-icon">{icon}</div>'
+        f'<div class="metric-card-value">{value}</div>'
+        f'<div class="metric-card-label">{label}</div>'
+        f'</div>'
+        for label, value, icon in metrics
+    )
+    st.markdown(
+        f'<div class="metric-cards-grid">{cards_html}</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+        <h3 class="workflow-subsection-title">
+            <span class="highlight">Results Table</span>
+        </h3>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    filter_col1, filter_col2, filter_col3 = st.columns(3)
+    with filter_col1:
+        if fcc_status_col in results_df.columns:
+            fcc_filter = st.multiselect(
+                "Filter by FCC Status",
+                options=results_df[fcc_status_col].unique(),
+                default=None,
             )
+            if fcc_filter:
+                results_df = results_df[results_df[fcc_status_col].isin(fcc_filter)]
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("### 📋 Detailed Results Table")
+    with filter_col2:
+        if fcc_tier_col in results_df.columns:
+            tier_filter = st.multiselect(
+                "Filter by FCCprio Tier",
+                options=sorted([t for t in results_df[fcc_tier_col].unique() if t != ""]),
+                default=None,
+            )
+            if tier_filter:
+                results_df = results_df[results_df[fcc_tier_col].isin(tier_filter)]
 
-    with st.expander("🔍 Filter Options", expanded=False):
-        filter_col1, filter_col2, filter_col3 = st.columns(3)
-        with filter_col1:
-            if fcc_status_col in results_df.columns:
-                fcc_filter = st.multiselect(
-                    "Filter by FCC Status",
-                    options=results_df[fcc_status_col].unique(),
+    with filter_col3:
+        if "Groups of concern" in results_df.columns:
+            groups_concern = results_df["Groups of concern"].str.split(",").explode().unique()
+
+            group_col1, group_col2 = st.columns([3, 1])
+            with group_col1:
+                group_filter = st.multiselect(
+                    "Filter by Groups of Concern",
+                    options=sorted([g.strip() for g in groups_concern if g and str(g).strip() != ""]),
                     default=None,
+                    key="groups_multiselect",
                 )
-                if fcc_filter:
-                    results_df = results_df[results_df[fcc_status_col].isin(fcc_filter)]
 
-        with filter_col2:
-            if fcc_tier_col in results_df.columns:
-                tier_filter = st.multiselect(
-                    "Filter by FCCprio Tier",
-                    options=sorted([t for t in results_df[fcc_tier_col].unique() if t != ""]),
-                    default=None,
-                )
-                if tier_filter:
-                    results_df = results_df[results_df[fcc_tier_col].isin(tier_filter)]
-
-        with filter_col3:
-            if "Groups of concern" in results_df.columns:
-                groups_concern = results_df["Groups of concern"].str.split(",").explode().unique()
-
-                group_col1, group_col2 = st.columns([3, 1])
-                with group_col1:
-                    group_filter = st.multiselect(
-                        "Filter by Groups of Concern",
-                        options=sorted([g.strip() for g in groups_concern if g and str(g).strip() != ""]),
-                        default=None,
-                        key="groups_multiselect",
+            with group_col2:
+                if len(group_filter) > 1:
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    logic_operator = st.radio(
+                        "Logic",
+                        options=["OR", "AND"],
+                        index=0,
+                        label_visibility="collapsed",
+                        key="logic_operator",
+                        help="OR: Match any selected group | AND: Match all selected groups",
                     )
+                else:
+                    logic_operator = "OR"
 
-                with group_col2:
-                    if len(group_filter) > 1:
-                        st.markdown("<br>", unsafe_allow_html=True)
-                        logic_operator = st.radio(
-                            "Logic",
-                            options=["OR", "AND"],
-                            index=0,
-                            label_visibility="collapsed",
-                            key="logic_operator",
-                            help="OR: Match any selected group | AND: Match all selected groups",
-                        )
-                    else:
-                        logic_operator = "OR"
+            if group_filter:
+                if logic_operator == "OR":
+                    filter_func = lambda x: any(g.strip() in str(x) for g in group_filter)
+                else:
+                    filter_func = lambda x: all(g.strip() in str(x) for g in group_filter)
 
-                if group_filter:
-                    if logic_operator == "OR":
-                        filter_func = lambda x: any(g.strip() in str(x) for g in group_filter)
-                    else:
-                        filter_func = lambda x: all(g.strip() in str(x) for g in group_filter)
-
-                    results_df = results_df[results_df["Groups of concern"].apply(filter_func)]
-
+                results_df = results_df[results_df["Groups of concern"].apply(filter_func)]
     display_results_df = build_display_results_df(results_df, DISPLAY_RESULT_COLUMNS)
     st.dataframe(display_results_df, use_container_width=True)
 
-    st.markdown("### 💾 Export Results")
+    
+    st.markdown(
+        """
+        <h3 class="workflow-subsection-title">
+            <span class="highlight">Export Results</span>
+        </h3>
+        """,
+        unsafe_allow_html=True,
+    )
     identifier_cols = ["CAS RN", "SMILES", "Chemical names", "Formula"]
     enrichment_cols = ["is Food Contact Chemical", "Tier of FCCprio", "Groups of concern"]
 

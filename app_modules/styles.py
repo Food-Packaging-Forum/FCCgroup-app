@@ -244,6 +244,19 @@ GLOBAL_CSS = """
         box-shadow: 0 2px 4px rgba(44, 62, 97, 0.1);
     }
 
+    .metric-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 640px) {
+        .metric-cards-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
     .metric-card {
         background: var(--secondary-background-color);
         border-radius: 12px;
@@ -252,6 +265,10 @@ GLOBAL_CSS = """
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         border: 1px solid rgba(128, 128, 128, 0.15);
         transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
 
     .metric-card:hover {
@@ -481,7 +498,6 @@ GLOBAL_CSS = """
         font-size: 1.8rem;
         font-weight: 700;
         font-family: 'Poppins', 'Segoe UI', sans-serif;
-        text-align: center;
         margin: 2.5rem 0 2rem 0;
         padding: 0.5rem 0;
     }
