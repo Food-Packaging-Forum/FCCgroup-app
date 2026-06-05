@@ -97,7 +97,7 @@ def _render_manual_entry() -> List[str]:
             sub_try, sub_new = st.columns(2)
             with sub_new:
                 with st.container(key="new_analysis_manual_container"):
-                    if st.button("🔄 Clear", use_container_width=True, key="new_analysis_manual_button"):
+                    if st.button("🔄 Clear Data", use_container_width=True, key="new_analysis_manual_button"):
                         _reset_for_new_analysis()
                         st.rerun()
         else:
