@@ -4,6 +4,7 @@ import base64
 from pathlib import Path
 
 import streamlit as st
+import streamlit.components.v1 as components
 from utils import _svg_as_data_uri
 
 
@@ -521,20 +522,27 @@ GLOBAL_CSS = """
 """
 
 
+# NOTE: This must run as a real <script> via st.components.v1.html (an iframe),
+# NOT st.markdown — Streamlit strips <script> tags from markdown, so the head
+# injection never executes there. From inside the iframe we target the PARENT
+# document's <head> (same origin), which is the actual page browsers read for
+# the manifest and apple-touch-icon.
 PWA_HEAD = """
 <script>
 (function () {
+  var doc = window.parent.document;
   function addHead(tag, attrs) {
-    if (document.querySelector(tag + '[rel="' + attrs.rel + '"]')) return;
-    var el = document.createElement(tag);
+    var sel = tag + '[' + (attrs.rel ? 'rel="' + attrs.rel + '"' : 'href="' + attrs.href + '"') + ']';
+    if (doc.querySelector(sel)) return;
+    var el = doc.createElement(tag);
     Object.keys(attrs).forEach(function(k) { el.setAttribute(k, attrs[k]); });
-    document.head.appendChild(el);
+    doc.head.appendChild(el);
   }
   function addMeta(name, content) {
-    if (document.querySelector('meta[name="' + name + '"]')) return;
-    var el = document.createElement('meta');
+    if (doc.querySelector('meta[name="' + name + '"]')) return;
+    var el = doc.createElement('meta');
     el.name = name; el.content = content;
-    document.head.appendChild(el);
+    doc.head.appendChild(el);
   }
   addHead('link', { rel: 'manifest',         href: '/app/static/manifest.json' });
   addHead('link', { rel: 'apple-touch-icon', href: '/app/static/apple-touch-icon.png' });
@@ -551,7 +559,9 @@ PWA_HEAD = """
 def apply_global_styles() -> None:
     """Apply shared CSS styles and PWA meta tags for the app."""
     st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
-    st.markdown(PWA_HEAD, unsafe_allow_html=True)
+    # Inject PWA head tags via a zero-height iframe component so the <script>
+    # actually executes (st.markdown would strip it).
+    components.html(PWA_HEAD, height=0, width=0)
 
 
 def render_page_header(active_page: str = "main") -> tuple[bool, bool]:
