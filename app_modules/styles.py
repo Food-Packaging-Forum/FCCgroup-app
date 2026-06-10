@@ -521,9 +521,21 @@ GLOBAL_CSS = """
 """
 
 
+PWA_HEAD = """
+<link rel="manifest" href="app/static/manifest.json">
+<link rel="apple-touch-icon" href="app/static/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="FCCgroup">
+<meta name="theme-color" content="#255aa7">
+"""
+
+
 def apply_global_styles() -> None:
-    """Apply shared CSS styles for the app."""
+    """Apply shared CSS styles and PWA meta tags for the app."""
     st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
+    st.markdown(PWA_HEAD, unsafe_allow_html=True)
 
 
 def render_page_header(active_page: str = "main") -> tuple[bool, bool]:
@@ -532,7 +544,7 @@ def render_page_header(active_page: str = "main") -> tuple[bool, bool]:
     image_src = _svg_as_data_uri(image_path)
 
     st.markdown(
-        f'<h1 class="main-header"><img src="{image_src}" alt="FCCgroup logo" style="height: 60px; height="><span class="highlight">FCCgroup</span></h1>',
+        f'<h1 class="main-header"><img src="{image_src}" alt="FCCgroup logo" style="height: 60px;"><span class="highlight">FCCgroup</span></h1>',
         unsafe_allow_html=True,
     )
 

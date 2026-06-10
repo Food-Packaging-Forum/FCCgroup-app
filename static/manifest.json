@@ -1,0 +1,29 @@
+{
+  "name": "FCCgroup",
+  "short_name": "FCCgroup",
+  "description": "FCC chemical grouping tool by the Food Packaging Forum",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#255aa7",
+  "icons": [
+    {
+      "src": "app/static/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "app/static/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "app/static/FCCgroup_logo_signet.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
