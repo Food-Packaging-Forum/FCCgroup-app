@@ -801,6 +801,19 @@ GLOBAL_CSS = """
         color: var(--fpf-muted);
     }
 
+    .workflow-section-boxes {
+        display: flex;
+        gap: 1rem;
+        align-items: stretch;
+        margin: 0.5rem 0 1rem 0;
+    }
+
+    .workflow-section-box {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
     @media (max-width: 768px) {
         .main-header {
             font-size: 2.2rem;
@@ -814,6 +827,10 @@ GLOBAL_CSS = """
 
         .brand-banner img {
             max-height: 52px;
+        }
+
+        .workflow-section-boxes {
+            flex-direction: column;
         }
     }
 </style>
@@ -861,7 +878,7 @@ def render_page_header(active_page: str = "main") -> tuple[bool, bool]:
         }}
         .st-key-nav_workflow_button button {{
             background: {workflow_bg}; color: {workflow_color}; border: {workflow_border};
-            border-radius: 12px; font-weight: 700; min-height: 2.4rem;
+            border-radius: 12px; font-weight: 700; min-width: 148px;
         }}
         .st-key-nav_workflow_button button:hover {{
             background: {workflow_bg}; color: {workflow_color}; border: {workflow_border};

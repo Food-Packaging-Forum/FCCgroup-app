@@ -257,7 +257,7 @@ def _render_workflow_step_tabs() -> None:
             if section["body"] else ""
         )
         box_parts.append(
-            "<div style='flex:1;display:flex;flex-direction:column'>"
+            "<div class='workflow-section-box'>"
             + f"<div style='background:linear-gradient(135deg,{color}12 0%,{color}04 100%);"
             + f"border-left:5px solid {color};border-radius:12px;"
             + "padding:1.25rem;flex:1;box-sizing:border-box'>"
@@ -269,7 +269,7 @@ def _render_workflow_step_tabs() -> None:
             + "</div>"
         )
     st.markdown(
-        "<div style='display:flex;gap:1rem;align-items:stretch;margin:0.5rem 0 1rem 0'>"
+        "<div class='workflow-section-boxes'>"
         + "".join(box_parts)
         + "</div>",
         unsafe_allow_html=True,
@@ -443,10 +443,10 @@ def display_workflow_explanation() -> None:
         ),
         unsafe_allow_html=True,
     )
-    st.markdown('<div class="section-gradient-divider"></div>', unsafe_allow_html=True)
 
     st.markdown(
         """
+        <div class="section-gradient-divider"></div>
         <div class="workflow-subsection-title">
             <span class="highlight">Three-Step Process</span>
         </div>
@@ -456,10 +456,9 @@ def display_workflow_explanation() -> None:
 
     _render_workflow_step_tabs()
 
-    st.markdown('<div class="section-gradient-divider"></div>', unsafe_allow_html=True)
-
     st.markdown(
         """
+        <div class="section-gradient-divider"></div>
         <div class="workflow-subsection-title">
             <span class="highlight">Common Use Cases</span>
         </div>
