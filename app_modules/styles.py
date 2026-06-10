@@ -103,7 +103,7 @@ GLOBAL_CSS = """
     .subtitle {
         text-align: center;
         font-size: 1.1rem;
-        color: var(--fpf-muted);
+        color: #000000;
         margin-bottom: 1rem;
     }
 
@@ -215,8 +215,8 @@ GLOBAL_CSS = """
         transform: translateX(-50%);
         width: 100vw;
         height: 4rem;
-        background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.055) 100%);
-        margin: 0.5rem 0 0 0;
+        background: linear-gradient(to bottom, transparent 0%, #F8F8F8 100%);
+        margin: 0.5rem 0 4rem 0;
         pointer-events: none;
         display: block;
     }
@@ -488,6 +488,7 @@ GLOBAL_CSS = """
         font-family: 'Poppins', 'Segoe UI', sans-serif;
         margin: 2rem 0 2.5rem 0;
         padding: 1rem 0;
+        margin: 0.5rem 0 0rem 0;
     }
 
     .workflow-section-title .highlight {

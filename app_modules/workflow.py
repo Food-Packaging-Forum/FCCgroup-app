@@ -167,7 +167,7 @@ def _render_workflow_step_tabs() -> None:
                     {content['title']}
                 </span>
             </div>
-            <div style="font-size: 0.97rem; color: #556070; line-height: 1.55;">{content['description']}</div>
+            <div style="font-size: 0.97rem; color: #000000; line-height: 1.55;">{content['description']}</div>
         </div>
         """,
         unsafe_allow_html=True,
