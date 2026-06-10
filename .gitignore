@@ -38,7 +38,6 @@ env/
 .DS_Store
 
 # Streamlit
-.streamlit/
 *.streamlit.run
 
 # Environment variables

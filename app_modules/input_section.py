@@ -9,6 +9,19 @@ from app_modules.config import MAPPING_FIELD_LABELS, build_default_mapping_paylo
 from app_modules.styles import apply_mode_button_styles
 
 
+def _reset_for_new_analysis() -> None:
+    """Reset input and results state while preserving input mode and method settings."""
+    st.session_state.cas_input_text = ""
+    st.session_state.text_area_counter = st.session_state.get("text_area_counter", 0) + 1
+    st.session_state.uploaded_df = None
+    st.session_state.results_df = None
+    st.session_state.mapping_payload = {}
+    st.session_state.file_upload_counter = st.session_state.get("file_upload_counter", 0) + 1
+    for key in ["_upload_sheet_names", "_upload_sheet_names_key", "_upload_parse_key"]:
+        if key in st.session_state:
+            del st.session_state[key]
+
+
 def _render_manual_entry() -> List[str]:
     """Render manual CAS/SMILES entry mode and return unique values."""
     input_type_options = {
@@ -30,29 +43,21 @@ def _render_manual_entry() -> List[str]:
         placeholder_text = "80-05-7\n538-23-8\n70546-25-7\n..."
         help_text = "Enter one CAS ID per line."
         tips_html = """
-        <div class="info-box">
-            <strong>💡 Manual Entry Tips</strong>
-            <ul style="margin: 0.5rem 0; padding-left: 1.2rem;">
-                <li>One CAS per line</li>
-                <li>Format: <code>123-45-6</code></li>
-                <li>Best for quick ad hoc runs</li>
-            </ul>
-        </div>
+        **💡 Manual Entry Tips**\n
+        - One CAS per line\n
+        - Format: 123-45-6\n
         """
     else:
         placeholder_text = "CC(C)(C1=CC=C(O)C=C1)C1=CC=C(O)C=C1\nCCCCCCCC(=O)OCC(COC(=O)CCCCCCC)OC(=O)CCCCCCC\n..."
         help_text = "Enter one SMILES string per line."
         tips_html = """
-        <div class="info-box">
-            <strong>💡 Manual Entry Tips</strong>
-            <ul style="margin: 0.5rem 0; padding-left: 1.2rem;">
-                <li>One SMILES per line</li>
-                <li>Use standard SMILES notation</li>
-                <li>Best for quick ad hoc runs</li>
-            </ul>
-        </div>
+        **💡 Manual Entry Tips**\n
+        - One SMILES per line\n
+        - Use standard SMILES notation\n
         """
 
+    # Counter-based key forces a fresh widget (with new value=) when sample data or reset is triggered,
+    # avoiding the StreamlitAPIException from modifying widget state after instantiation.
     cas_input = st.text_area(
         input_label,
         value=st.session_state.cas_input_text,
@@ -60,19 +65,53 @@ def _render_manual_entry() -> List[str]:
         placeholder=placeholder_text,
         help=help_text,
         label_visibility="collapsed",
+        key=f"manual_input_textarea_{st.session_state.get('text_area_counter', 0)}",
     )
     st.session_state.cas_input_text = cas_input
 
-    manual_col1, manual_col2 = st.columns([1, 2])
-    with manual_col1:
-        if st.button("📝 Try Sample Data", use_container_width=True, key="sample_data_button"):
-            if st.session_state.input_type == "casId":
-                st.session_state.cas_input_text = "80-05-7\n538-23-8\n70546-25-7\n68134-22-5\n128-37-0\n50-00-0"
-            else:
-                st.session_state.cas_input_text = "CC(C)(C1=CC=C(O)C=C1)C1=CC=C(O)C=C1\nCCCCCCCC(=O)OCC(COC(=O)CCCCCCC)OC(=O)CCCCCCC\nCCN(CC)C1=CC2=C(C=C1)C(C#N)=C(C1=NC3=C(S1)C=CC=C3)C(=O)O2\nCC(=O)C(N=NC1=CC=CC=C1C(F)(F)F)C(=O)NC1=CC2=C(NC(=O)N2)C=C1\nCC1=CC(=C(O)C(=C1)C(C)(C)C)C(C)(C)C\nC=O"
-            st.rerun()
-    with manual_col2:
-        st.markdown(tips_html, unsafe_allow_html=True)
+    has_manual_input = bool(cas_input.strip())
+
+    # Slide-in animation fires when the container enters the DOM (first keystroke).
+    st.markdown(
+        """
+        <style>
+        .st-key-new_analysis_manual_container {
+            animation: slideInFromRight 0.4s ease-out;
+        }
+        @keyframes slideInFromRight {
+            from { opacity: 0; transform: translateX(24px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Tips on the left, button area on the right — horizontally aligned in one row.
+    tips_col, btn_area = st.columns([1, 1])
+    with tips_col:
+        st.info(tips_html)
+    with btn_area:
+        # Single button centered in the btn_area; both buttons fill it equally when data is present.
+        if has_manual_input:
+            sub_try, sub_new = st.columns(2)
+            with sub_new:
+                with st.container(key="new_analysis_manual_container"):
+                    if st.button("🔄 Clear Data", use_container_width=True, key="new_analysis_manual_button"):
+                        _reset_for_new_analysis()
+                        st.rerun()
+        else:
+            _, sub_try, _ = st.columns([1, 4, 1])
+
+        with sub_try:
+            if st.button("📝 Try Sample Data", use_container_width=True, key="sample_data_button"):
+                if st.session_state.input_type == "casId":
+                    sample = "80-05-7\n538-23-8\n70546-25-7\n68134-22-5\n128-37-0\n50-00-0"
+                else:
+                    sample = "CC(C)(C1=CC=C(O)C=C1)C1=CC=C(O)C=C1\nCCCCCCCC(=O)OCC(COC(=O)CCCCCCC)OC(=O)CCCCCCC\nCCN(CC)C1=CC2=C(C=C1)C(C#N)=C(C1=NC3=C(S1)C=CC=C3)C(=O)O2\nCC(=O)C(N=NC1=CC=CC=C1C(F)(F)F)C(=O)NC1=CC2=C(NC(=O)N2)C=C1\nCC1=CC(=C(O)C(=C1)C(C)(C)C)C(C)(C)C\nC=O"
+                st.session_state.cas_input_text = sample
+                st.session_state.text_area_counter = st.session_state.get("text_area_counter", 0) + 1
+                st.rerun()
 
     manual_input_values = [line.strip() for line in st.session_state.cas_input_text.split("\n") if line.strip()]
     return list(dict.fromkeys(manual_input_values))
@@ -88,20 +127,41 @@ def _render_file_upload() -> None:
         type=["xlsx", "xls", "csv"],
         help="Upload a table containing your chemical identifiers and optional metadata columns.",
         label_visibility="collapsed",
+        key=f"file_uploader_{st.session_state.get('file_upload_counter', 0)}",
     )
 
     if uploaded_file is None:
         return
 
+    if st.button("🔄 Clear Data", key="new_analysis_upload_button"):
+        _reset_for_new_analysis()
+        st.rerun()
+
     try:
         row_col = st.number_input("Row number containing headers:", min_value=1, max_value=11, value=1, step=1, key="header_row_input")
-        if uploaded_file.name.endswith(".csv"):
-            df_upload = pd.read_csv(uploaded_file, header=row_col - 1)
-        else:
-            sheet_name = st.selectbox("Sheet name:", options=pd.ExcelFile(uploaded_file).sheet_names, key="sheet_selector")
-            df_upload = pd.read_excel(uploaded_file, sheet_name=sheet_name, header=row_col - 1)
 
-        st.session_state.uploaded_df = df_upload
+        sheet_name = None
+        if not uploaded_file.name.endswith(".csv"):
+            # Cache sheet names separately — reading them is cheap but still avoids redundant I/O.
+            file_id = (uploaded_file.name, uploaded_file.size)
+            if st.session_state.get("_upload_sheet_names_key") != file_id:
+                uploaded_file.seek(0)
+                st.session_state._upload_sheet_names = pd.ExcelFile(uploaded_file).sheet_names
+                st.session_state._upload_sheet_names_key = file_id
+            sheet_name = st.selectbox("Sheet name:", options=st.session_state._upload_sheet_names, key="sheet_selector")
+
+        # Only re-parse the file when the file itself or its parsing parameters change.
+        parse_key = (uploaded_file.name, uploaded_file.size, row_col, sheet_name)
+        if st.session_state.get("_upload_parse_key") != parse_key:
+            uploaded_file.seek(0)
+            if uploaded_file.name.endswith(".csv"):
+                df_upload = pd.read_csv(uploaded_file, header=row_col - 1)
+            else:
+                df_upload = pd.read_excel(uploaded_file, sheet_name=sheet_name, header=row_col - 1)
+            st.session_state.uploaded_df = df_upload
+            st.session_state._upload_parse_key = parse_key
+
+        df_upload = st.session_state.uploaded_df
         st.success(f"✅ Uploaded dataset with {len(df_upload)} rows and {len(df_upload.columns)} columns.")
         st.dataframe(df_upload.head(5), use_container_width=True)
     except Exception as error:
@@ -175,10 +235,9 @@ def render_input_section() -> Tuple[pd.DataFrame, bool, int, str, List[str]]:
     """Render full input section and return analysis dataframe + input summary details."""
     st.markdown(
         """
-        <div class="process-step">
-            <h3>Step 1: Add Input Data</h3>
-            <p>Choose one input path before running the analysis</p>
-        </div>
+        <h2 class="workflow-section-title">
+            <span class="highlight">Step 1: Add Input Data</span>
+        </h2>
         """,
         unsafe_allow_html=True,
     )
@@ -252,14 +311,18 @@ def render_input_section() -> Tuple[pd.DataFrame, bool, int, str, List[str]]:
             input_summary_preview = analysis_df[preview_source].dropna().astype(str).head(3).tolist()
 
     if input_summary_ready:
+        _C = "#255aa7"
+        preview_text = ", ".join(input_summary_preview) + ("..." if input_summary_count > 3 else "")
         st.markdown(
-            f"""
-            <div class="success-box">
-                <strong>✅ Input Summary</strong><br>
-                📊 <strong>{input_summary_count}</strong> {input_summary_label} ready to process<br>
-                🔍 Preview: {', '.join(input_summary_preview)}{'...' if input_summary_count > 3 else ''}
-            </div>
-            """,
+            f"<div style='background:linear-gradient(135deg,{_C}12 0%,{_C}04 100%);"
+            f"border-left:5px solid {_C};border-radius:12px;padding:1.25rem;"
+            f"font-size:0.95rem;line-height:1.6;'>"
+            f"<p style='font-weight:700;margin:0 0 0.4rem 0;font-size:1rem;"
+            f"font-family:Poppins,sans-serif;letter-spacing:0.02em;'>"
+            f"Input Summary</p>"
+            f"<strong>{input_summary_count} {input_summary_label}</strong> ready to process<br>"
+            f"<strong>Preview:</strong> {preview_text}"
+            f"</div>",
             unsafe_allow_html=True,
         )
 
