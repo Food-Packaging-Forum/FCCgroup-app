@@ -40,18 +40,6 @@ GLOBAL_CSS = """
         max-width: 1200px;
     }
 
-    .brand-banner {
-        display: flex;
-        justify-content: center;
-        margin: 0 0 1rem 0;
-    }
-
-    .brand-banner img {
-        max-height: 62px;
-        object-fit: contain;
-        width: auto;
-    }
-
     .main-header {
         font-size: 2.8rem;
         font-weight: 700;
@@ -77,78 +65,11 @@ GLOBAL_CSS = """
         -webkit-text-fill-color: transparent;
     }
 
-    .sidebar-main-header {
-        font-size: 2rem;
-        font-weight: 700;
-        font-family: 'Poppins', 'Segoe UI', sans-serif;
-        text-align: center;
-        margin-bottom: 0.5rem;
-        padding: 1rem 0;
-    }
-
-    .sidebar-main-header img {
-        width: 32px;
-        height: auto;
-        padding-right: 0.35rem;
-        display: inline-block;
-        vertical-align: middle;
-    }
-
-    .sidebar-main-header .highlight {
-        background: var(--fpf-gradient);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
     .subtitle {
         text-align: center;
         font-size: 1.1rem;
         color: #000000;
         margin-bottom: 1rem;
-    }
-
-    .header-intro {
-        max-width: 900px;
-        margin: 0 auto 1.6rem auto;
-        background: linear-gradient(180deg, rgba(37, 90, 167, 0.08) 0%, rgba(44, 62, 97, 0.04) 100%);
-        border: 1px solid var(--fpf-border);
-        border-left: 5px solid var(--fpf-blue);
-        border-radius: 12px;
-        padding: 1rem 1.25rem;
-        line-height: 1.55;
-        font-size: 0.98rem;
-        color: var(--fpf-text);
-        box-shadow: 0 2px 6px rgba(44, 62, 97, 0.08);
-    }
-
-    .header-intro strong {
-        color: var(--fpf-dark-blue);
-        font-family: 'Poppins', 'Segoe UI', sans-serif;
-        font-weight: 700;
-    }
-
-    .st-key-sidebar_workflow_button button {
-        background: var(--fpf-gradient);
-        color: #ffffff;
-        border: none;
-        border-radius: 12px;
-        min-height: 2.6rem;
-        font-weight: 700;
-        letter-spacing: 0.01em;
-        box-shadow: var(--fpf-shadow);
-    }
-
-    .st-key-sidebar_workflow_button button:hover {
-        transform: scale(1.03);
-        box-shadow: var(--fpf-shadow-strong);
-        background: var(--fpf-gradient);
-        color: #ffffff;
-        border: none;
-    }
-
-    .st-key-sidebar_workflow_button button:focus-visible {
-        outline: 3px solid rgba(37, 90, 167, 0.35);
-        outline-offset: 1px;
     }
 
     .st-key-start_analysis_button button {
@@ -176,29 +97,6 @@ GLOBAL_CSS = """
         pointer-events: auto;
     }
 
-    .cta-hint {
-        text-align: center;
-        margin-bottom: 0.65rem;
-        color: var(--fpf-dark-blue);
-        font-size: 0.96rem;
-        font-weight: 600;
-    }
-
-    .card {
-        background: var(--secondary-background-color);
-        border-radius: 15px;
-        padding: 2rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-        margin: 1.5rem 0;
-        border: 1px solid rgba(128, 128, 128, 0.2);
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-    }
-
     /* Unblock Streamlit's inner container chain so full-width elements can escape.
        stMain is intentionally excluded — it is the scroll container. */
     .block-container,
@@ -219,33 +117,6 @@ GLOBAL_CSS = """
         margin: 0.5rem 0 4rem 0;
         pointer-events: none;
         display: block;
-    }
-
-    .info-box {
-        background: rgba(37, 90, 167, 0.1);
-        border-left: 4px solid var(--fpf-blue);
-        padding: 1.2rem;
-        margin: 0 0 1rem;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(37, 90, 167, 0.1);
-    }
-
-    .success-box {
-        background: rgba(16, 185, 129, 0.1);
-        border-left: 4px solid #10b981;
-        padding: 1.2rem;
-        margin: 1rem 0;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.1);
-    }
-
-    .warning-box {
-        background: rgba(44, 62, 97, 0.08);
-        border-left: 4px solid var(--fpf-dark-blue);
-        padding: 1.2rem;
-        margin: 1rem 0;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(44, 62, 97, 0.1);
     }
 
     .metric-cards-grid {
@@ -297,33 +168,6 @@ GLOBAL_CSS = """
         margin-bottom: 0.2rem;
     }
 
-    .timeline-item {
-        position: relative;
-        padding-left: 2.5rem;
-        padding-bottom: 2rem;
-        border-left: 3px solid #e5e7eb;
-    }
-
-    .timeline-item:last-child {
-        border-left: none;
-    }
-
-    .timeline-icon {
-        position: absolute;
-        left: -1rem;
-        top: 0;
-        width: 2rem;
-        height: 2rem;
-        border-radius: 50%;
-        background: var(--fpf-gradient);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        box-shadow: 0 2px 8px rgba(37, 90, 167, 0.4);
-    }
-
     .stButton > button {
         border-radius: 10px;
         font-weight: 600;
@@ -341,145 +185,6 @@ GLOBAL_CSS = """
         border: none;
         height: 1px;
         background: linear-gradient(to right, transparent, #e5e7eb, transparent);
-    }
-
-    .workflow-card {
-        margin: .5rem 0;
-        color: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        text-align: left;
-        min-height: 150px;
-        position: relative;
-        transition: transform 0.3s ease;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .workflow-card:hover {
-        transform: translateY(-4px);
-    }
-
-    .workflow-card .brief-description {
-        margin: 0.4rem 0;
-        font-size: 0.9rem;
-        opacity: 0.95;
-        transition: opacity 0.3s ease;
-        flex-grow: 1;
-    }
-
-    .workflow-card:hover .brief-description {
-        opacity: 0.85;
-    }
-
-    .workflow-card .details-block {
-        max-height: 0;
-        opacity: 0;
-        overflow: hidden;
-        transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
-                    opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                    margin-top 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        margin-top: 0;
-        flex-grow: 1;
-    }
-
-    .workflow-card .details-block > * {
-        transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .workflow-card:hover .details-block {
-        max-height: 400px;
-        opacity: 1;
-        margin-top: 0.75rem;
-        padding-top: 0.75rem;
-    }
-
-    .workflow-card .details-block p {
-        margin: 0.5rem 0 0.25rem;
-        font-size: 0.9rem;
-        opacity: 0.95;
-    }
-
-    .workflow-card .details-block ul {
-        margin: 0.25rem 0 0.5rem;
-        padding-left: 1.1rem;
-        font-size: 0.85rem;
-        opacity: 0.9;
-        line-height: 1.35;
-    }
-
-    @media (hover: none) {
-        .workflow-card .details-block {
-            max-height: 400px;
-            opacity: 1;
-            margin-top: 0.75rem;
-            padding-top: 0.75rem;
-        }
-    }
-
-    .workflow-intro {
-        background: rgba(37, 90, 167, 0.08);
-        border-left: 4px solid var(--fpf-blue);
-        padding: 2rem;
-        margin: 1.5rem 0 2rem 0;
-        border-radius: 12px;
-        font-size: 1rem;
-        line-height: 1.6;
-        transition: all 0.3s ease;
-    }
-
-    .workflow-intro:hover {
-        border-left-color: var(--fpf-dark-blue);
-        background: rgba(37, 90, 167, 0.12);
-        box-shadow: 0 4px 12px rgba(37, 90, 167, 0.15);
-    }
-
-    .use-case-item {
-        background: rgba(0, 0, 0, 0.03);
-        border: 1px solid rgba(128, 128, 128, 0.2);
-        padding: 1.5rem;
-        margin: 1rem 0;
-        border-radius: 12px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .use-case-item::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 4px;
-        background: linear-gradient(180deg, #255aa7 0%, #2c3e61 100%);
-        transform: scaleY(0);
-        transform-origin: center;
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .use-case-item:hover {
-        transform: translateX(4px);
-        border-color: var(--fpf-blue);
-        box-shadow: 0 4px 12px rgba(37, 90, 167, 0.15);
-        background: rgba(37, 90, 167, 0.07);
-    }
-
-    .use-case-item:hover::before {
-        transform: scaleY(1);
-    }
-
-    .use-case-title {
-        font-weight: 700;
-        font-size: 1.05rem;
-        margin-bottom: 0.5rem;
-        letter-spacing: 0.3px;
-    }
-
-    .use-case-description {
-        font-size: 0.95rem;
-        line-height: 1.5;
-        opacity: 0.8;
     }
 
     .workflow-section-title {
@@ -513,68 +218,6 @@ GLOBAL_CSS = """
         background-clip: text;
     }
 
-    .workflow-card-prioritization {
-        background: #2c3e61;
-        box-shadow: 0 4px 10px rgba(31, 77, 144, 0.3);
-    }
-
-    .workflow-button {
-        display: inline-block;
-        padding: 0.6rem 1.2rem;
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        text-decoration: none !important;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        transition: all 0.3s ease;
-        cursor: pointer;
-        margin-top: 1rem;
-        display: inline-block;
-        margin-right: 0.5rem;
-    }
-
-    .workflow-button:hover {
-        background: rgba(255, 255, 255, 0.3);
-        border-color: rgba(255, 255, 255, 0.5);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        text-decoration: none !important;
-        color: white;
-    }
-
-    .workflow-button:visited {
-        text-decoration: none !important;
-        color: white;
-    }
-
-    .workflow-button-container {
-        max-height: 0;
-        opacity: 0;
-        overflow: visible;
-        transition: max-height 0.3s ease, opacity 0.3s ease;
-        margin-top: 0;
-    }
-
-    .workflow-card:hover .workflow-button-container {
-        max-height: 150px;
-        opacity: 1;
-        margin-top: 1.2rem;
-        padding-top: 1rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    @media (hover: none) {
-        .workflow-card .workflow-button-container {
-            max-height: 150px;
-            opacity: 1;
-            margin-top: 1.2rem;
-            padding-top: 1rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-        }
-    }
-
     /* ======================================================
        Dark-mode overrides
        Uses both [data-theme="dark"] (for Streamlit's own toggle)
@@ -584,22 +227,6 @@ GLOBAL_CSS = """
 
     [data-theme="dark"] .subtitle { color: #c9d5e2; }
     @media (prefers-color-scheme: dark) { .subtitle { color: #c9d5e2; } }
-
-    [data-theme="dark"] .card {
-        background: color-mix(in srgb, var(--secondary-background-color) 100%, white 18%);
-        border-color: rgba(255, 255, 255, 0.12);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    }
-    @media (prefers-color-scheme: dark) {
-        .card {
-            background: color-mix(in srgb, var(--secondary-background-color) 100%, white 18%);
-            border-color: rgba(255, 255, 255, 0.12);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-        }
-    }
-
-    [data-theme="dark"] .card:hover { box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
-    @media (prefers-color-scheme: dark) { .card:hover { box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05); } }
 
     [data-theme="dark"] .metric-card {
         background: color-mix(in srgb, var(--secondary-background-color) 100%, white 18%);
@@ -638,47 +265,6 @@ GLOBAL_CSS = """
     @media (prefers-color-scheme: dark) {
         .section-gradient-divider {
             background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.18) 100%);
-        }
-    }
-
-    [data-theme="dark"] .timeline-item { border-left-color: rgba(255, 255, 255, 0.1); }
-    @media (prefers-color-scheme: dark) { .timeline-item { border-left-color: rgba(255, 255, 255, 0.1); } }
-
-    [data-theme="dark"] .use-case-item {
-        background: rgba(255, 255, 255, 0.03);
-        border-color: rgba(255, 255, 255, 0.09);
-    }
-    [data-theme="dark"] .use-case-item:hover {
-        background: rgba(37, 90, 167, 0.1);
-        border-color: rgba(37, 90, 167, 0.45);
-        box-shadow: 0 4px 12px rgba(37, 90, 167, 0.12);
-    }
-    @media (prefers-color-scheme: dark) {
-        .use-case-item {
-            background: rgba(255, 255, 255, 0.03);
-            border-color: rgba(255, 255, 255, 0.09);
-        }
-        .use-case-item:hover {
-            background: rgba(37, 90, 167, 0.1);
-            border-color: rgba(37, 90, 167, 0.45);
-            box-shadow: 0 4px 12px rgba(37, 90, 167, 0.12);
-        }
-    }
-
-    [data-theme="dark"] .workflow-intro {
-        background: rgba(37, 90, 167, 0.1);
-    }
-    [data-theme="dark"] .workflow-intro:hover {
-        background: rgba(37, 90, 167, 0.15);
-        box-shadow: 0 4px 12px rgba(37, 90, 167, 0.12);
-    }
-    @media (prefers-color-scheme: dark) {
-        .workflow-intro {
-            background: rgba(37, 90, 167, 0.1);
-        }
-        .workflow-intro:hover {
-            background: rgba(37, 90, 167, 0.15);
-            box-shadow: 0 4px 12px rgba(37, 90, 167, 0.12);
         }
     }
 
@@ -732,31 +318,6 @@ GLOBAL_CSS = """
     }
 
     .st-key-sample_data_button button:focus-visible {
-        outline: 3px solid rgba(37, 90, 167, 0.35);
-        outline-offset: 1px;
-    }
-
-    /* Main workflow button */
-    .st-key-main_workflow_button button {
-        background: var(--fpf-gradient);
-        color: #ffffff;
-        border: none;
-        border-radius: 12px;
-        min-height: 2.6rem;
-        font-weight: 700;
-        letter-spacing: 0.01em;
-        box-shadow: var(--fpf-shadow);
-    }
-
-    .st-key-main_workflow_button button:hover {
-        transform: scale(1.03);
-        box-shadow: var(--fpf-shadow-strong);
-        background: var(--fpf-gradient);
-        color: #ffffff;
-        border: none;
-    }
-
-    .st-key-main_workflow_button button:focus-visible {
         outline: 3px solid rgba(37, 90, 167, 0.35);
         outline-offset: 1px;
     }
@@ -818,15 +379,6 @@ GLOBAL_CSS = """
         .main-header {
             font-size: 2.2rem;
             padding: 0.5rem 0;
-        }
-
-        .header-intro {
-            padding: 0.9rem 1rem;
-            font-size: 0.93rem;
-        }
-
-        .brand-banner img {
-            max-height: 52px;
         }
 
         .workflow-section-boxes {
