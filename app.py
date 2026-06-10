@@ -19,7 +19,7 @@ sys.path.append(str(Path(__file__).parent / "src"))
 
 st.set_page_config(
     page_title="FCCgroup",
-    page_icon="https://foodpackagingforum.org/wp-content/uploads/2024/09/fpf-icon-1.svg",
+    page_icon="assets/FCCgroup_logo_signet.svg",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
