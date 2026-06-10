@@ -132,6 +132,19 @@ GLOBAL_CSS = """
         }
     }
 
+    .metric-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 640px) {
+        .metric-cards-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
     .metric-card {
         background: var(--secondary-background-color);
         border-radius: 12px;
@@ -373,6 +386,125 @@ GLOBAL_CSS = """
         flex: 1;
         display: flex;
         flex-direction: column;
+    }
+
+    /* Download buttons need explicit transition — they render as .stDownloadButton, not .stButton,
+       so the global .stButton > button transition rule does not reach them. */
+    .st-key-download_csv_button button,
+    .st-key-download_excel_button button {
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease !important;
+    }
+
+    /* wf_tab buttons: ensure 0.3s transition wins over Streamlit's built-in shorter default */
+    [class*="st-key-wf_tab_"] button {
+        transition: all 0.3s ease !important;
+    }
+
+    /* Clear and download buttons — hover: zoom + shadow, no background change */
+    .st-key-new_analysis_manual_button button:hover,
+    .st-key-new_analysis_upload_button button:hover,
+    .st-key-clear_data_results_button button:hover,
+    .st-key-download_csv_button button:hover,
+    .st-key-download_excel_button button:hover {
+        transform: scale(1.03);
+        box-shadow: var(--fpf-shadow);
+        background: var(--background-color);
+    }
+
+    /* Hide sidebar and its toggle completely */
+    section[data-testid="stSidebar"] { display: none !important; }
+    [data-testid="collapsedControl"] { display: none !important; }
+
+    /* Sample data button — matches main workflow button style */
+    .st-key-sample_data_button button {
+        background: var(--fpf-gradient);
+        color: #ffffff;
+        border: none;
+        border-radius: 12px;
+        min-height: 2.6rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        box-shadow: var(--fpf-shadow);
+    }
+
+    .st-key-sample_data_button button:hover {
+        transform: scale(1.03);
+        box-shadow: var(--fpf-shadow-strong);
+        background: var(--fpf-gradient);
+        color: #ffffff;
+        border: none;
+    }
+
+    .st-key-sample_data_button button:focus-visible {
+        outline: 3px solid rgba(37, 90, 167, 0.35);
+        outline-offset: 1px;
+    }
+
+    /* Main workflow button */
+    .st-key-main_workflow_button button {
+        background: var(--fpf-gradient);
+        color: #ffffff;
+        border: none;
+        border-radius: 12px;
+        min-height: 2.6rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        box-shadow: var(--fpf-shadow);
+    }
+
+    .st-key-main_workflow_button button:hover {
+        transform: scale(1.03);
+        box-shadow: var(--fpf-shadow-strong);
+        background: var(--fpf-gradient);
+        color: #ffffff;
+        border: none;
+    }
+
+    .st-key-main_workflow_button button:focus-visible {
+        outline: 3px solid rgba(37, 90, 167, 0.35);
+        outline-offset: 1px;
+    }
+
+    /* Grouping config panel */
+    .st-key-grouping_config_panel {
+        background: rgba(37, 90, 167, 0.06);
+        border: 1px solid var(--fpf-border);
+        border-radius: 12px;
+        padding: 0.75rem 1.25rem 0.5rem;
+        margin: 0 0 1.25rem 0;
+    }
+
+    [data-theme="dark"] .st-key-grouping_config_panel {
+        background: rgba(37, 90, 167, 0.1);
+        border-color: rgba(37, 90, 167, 0.3);
+    }
+
+    /* Page footer */
+    .page-footer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2rem;
+        padding: 0.5rem 0 1rem 0;
+        flex-wrap: wrap;
+    }
+
+    .page-footer img.fpf-logo {
+        height: 36px;
+        width: auto;
+    }
+
+    .page-footer-license {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .page-footer-text {
+        font-size: 0.85rem;
+        color: var(--fpf-muted);
     }
 
     @media (max-width: 768px) {
