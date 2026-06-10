@@ -54,7 +54,7 @@ GLOBAL_CSS = """
     }
 
     .main-header img {
-        height: 40px;
+        height: 60px;
         width: auto;
         display: inline-block;
     }
@@ -522,13 +522,29 @@ GLOBAL_CSS = """
 
 
 PWA_HEAD = """
-<link rel="manifest" href="app/static/manifest.json">
-<link rel="apple-touch-icon" href="app/static/apple-touch-icon.png">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="FCCgroup">
-<meta name="theme-color" content="#255aa7">
+<script>
+(function () {
+  function addHead(tag, attrs) {
+    if (document.querySelector(tag + '[rel="' + attrs.rel + '"]')) return;
+    var el = document.createElement(tag);
+    Object.keys(attrs).forEach(function(k) { el.setAttribute(k, attrs[k]); });
+    document.head.appendChild(el);
+  }
+  function addMeta(name, content) {
+    if (document.querySelector('meta[name="' + name + '"]')) return;
+    var el = document.createElement('meta');
+    el.name = name; el.content = content;
+    document.head.appendChild(el);
+  }
+  addHead('link', { rel: 'manifest',         href: '/app/static/manifest.json' });
+  addHead('link', { rel: 'apple-touch-icon', href: '/app/static/apple-touch-icon.png' });
+  addMeta('mobile-web-app-capable',            'yes');
+  addMeta('apple-mobile-web-app-capable',      'yes');
+  addMeta('apple-mobile-web-app-status-bar-style', 'default');
+  addMeta('apple-mobile-web-app-title',        'FCCgroup');
+  addMeta('theme-color',                       '#255aa7');
+})();
+</script>
 """
 
 
@@ -540,11 +556,8 @@ def apply_global_styles() -> None:
 
 def render_page_header(active_page: str = "main") -> tuple[bool, bool]:
     """Render app title and nav tabs. Returns (go_to_workflow, go_to_analysis)."""
-    image_path = Path(__file__).resolve().parents[1] / "assets" / "FCCgroup_logo_signet.svg"
-    image_src = _svg_as_data_uri(image_path)
-
     st.markdown(
-        f'<h1 class="main-header"><img src="{image_src}" alt="FCCgroup logo" style="height: 60px;"><span class="highlight">FCCgroup</span></h1>',
+        '<h1 class="main-header"><img src="/app/static/FCCgroup_logo_signet.svg" alt="FCCgroup logo"><span class="highlight">FCCgroup</span></h1>',
         unsafe_allow_html=True,
     )
 
