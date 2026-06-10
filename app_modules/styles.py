@@ -566,8 +566,11 @@ def apply_global_styles() -> None:
 
 def render_page_header(active_page: str = "main") -> tuple[bool, bool]:
     """Render app title and nav tabs. Returns (go_to_workflow, go_to_analysis)."""
+    image_path = Path(__file__).resolve().parents[1] / "static" / "FCCgroup_logo_signet.svg"
+    image_src = _svg_as_data_uri(image_path)
+
     st.markdown(
-        '<h1 class="main-header"><img src="/app/static/FCCgroup_logo_signet.svg" alt="FCCgroup logo"><span class="highlight">FCCgroup</span></h1>',
+        f'<h1 class="main-header"><img src="{image_src}" alt="FCCgroup logo"><span class="highlight">FCCgroup</span></h1>',
         unsafe_allow_html=True,
     )
 
