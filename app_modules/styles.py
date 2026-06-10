@@ -544,7 +544,7 @@ def render_page_header(active_page: str = "main") -> tuple[bool, bool]:
     image_src = _svg_as_data_uri(image_path)
 
     st.markdown(
-        f'<h1 class="main-header"><img src="{image_src}" alt="FCCgroup logo" style="height: 60px; height="><span class="highlight">FCCgroup</span></h1>',
+        f'<h1 class="main-header"><img src="{image_src}" alt="FCCgroup logo" style="height: 60px;"><span class="highlight">FCCgroup</span></h1>',
         unsafe_allow_html=True,
     )
 
