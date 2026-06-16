@@ -232,58 +232,6 @@ GLOBAL_CSS = """
         background-clip: text;
     }
 
-    /* ======================================================
-       Dark-mode overrides
-       Uses both [data-theme="dark"] (for Streamlit's own toggle)
-       and @media (prefers-color-scheme: dark) (for system preference)
-       to ensure maximum compatibility across Streamlit versions.
-       ====================================================== */
-
-    [data-theme="dark"] .subtitle { color: #c9d5e2; }
-    @media (prefers-color-scheme: dark) { .subtitle { color: #c9d5e2; } }
-
-    [data-theme="dark"] .metric-card {
-        background: color-mix(in srgb, var(--secondary-background-color) 100%, white 18%);
-        border-color: rgba(255, 255, 255, 0.12);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    }
-    @media (prefers-color-scheme: dark) {
-        .metric-card {
-            background: color-mix(in srgb, var(--secondary-background-color) 100%, white 18%);
-            border-color: rgba(255, 255, 255, 0.12);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-        }
-    }
-
-    [data-theme="dark"] .metric-card:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
-    @media (prefers-color-scheme: dark) { .metric-card:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05); } }
-
-    [data-theme="dark"] .metric-card-label { color: #9ca3af; }
-    @media (prefers-color-scheme: dark) { .metric-card-label { color: #9ca3af; } }
-
-    [data-theme="dark"] .streamlit-expanderHeader { background-color: rgba(255, 255, 255, 0.05); }
-    @media (prefers-color-scheme: dark) { .streamlit-expanderHeader { background-color: rgba(255, 255, 255, 0.05); } }
-
-    [data-theme="dark"] hr {
-        background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
-    }
-    @media (prefers-color-scheme: dark) {
-        hr {
-            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
-        }
-    }
-
-    [data-theme="dark"] .section-gradient-divider {
-        background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.18) 100%);
-    }
-    @media (prefers-color-scheme: dark) {
-        .section-gradient-divider {
-            background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.18) 100%);
-        }
-    }
-
-    /* Download buttons need explicit transition — they render as .stDownloadButton, not .stButton,
-       so the global .stButton > button transition rule does not reach them. */
     .st-key-download_csv_button button,
     .st-key-download_excel_button button {
         border-radius: 10px;
@@ -291,12 +239,10 @@ GLOBAL_CSS = """
         transition: all 0.3s ease !important;
     }
 
-    /* wf_tab buttons: ensure 0.3s transition wins over Streamlit's built-in shorter default */
     [class*="st-key-wf_tab_"] button {
         transition: all 0.3s ease !important;
     }
 
-    /* Clear and download buttons — hover: zoom + shadow, no background change */
     .st-key-new_analysis_manual_button button:hover,
     .st-key-new_analysis_upload_button button:hover,
     .st-key-clear_data_results_button button:hover,
@@ -307,11 +253,9 @@ GLOBAL_CSS = """
         background: var(--background-color);
     }
 
-    /* Hide sidebar and its toggle completely */
     section[data-testid="stSidebar"] { display: none !important; }
     [data-testid="collapsedControl"] { display: none !important; }
 
-    /* Sample data button — matches main workflow button style */
     .st-key-sample_data_button button {
         background: var(--fpf-gradient);
         color: #ffffff;
@@ -336,18 +280,12 @@ GLOBAL_CSS = """
         outline-offset: 1px;
     }
 
-    /* Grouping config panel */
     .st-key-grouping_config_panel {
         background: rgba(37, 90, 167, 0.06);
         border: 1px solid var(--fpf-border);
         border-radius: 12px;
         padding: 0.75rem 1.25rem 0.5rem;
         margin: 0 0 1.25rem 0;
-    }
-
-    [data-theme="dark"] .st-key-grouping_config_panel {
-        background: rgba(37, 90, 167, 0.1);
-        border-color: rgba(37, 90, 167, 0.3);
     }
 
     /* Page footer */
@@ -475,11 +413,6 @@ GLOBAL_CSS = """
         border-radius: 12px;
         padding: 0.75rem 1.25rem 0.5rem;
         margin: 0 0 1.25rem 0;
-    }
-
-    [data-theme="dark"] .st-key-grouping_config_panel {
-        background: rgba(37, 90, 167, 0.1);
-        border-color: rgba(37, 90, 167, 0.3);
     }
 
     /* Page footer */
