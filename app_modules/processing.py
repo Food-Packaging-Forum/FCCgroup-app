@@ -8,7 +8,7 @@ from rdkit import Chem
 
 from fccgroup import ChemicalGrouper, ColumnMapping, GroupingConfig
 from fccgroup.constants import MULTIINDEX_IDENTIFIER_LABEL, MULTIINDEX_STRUCTURAL_LABEL
-from app_modules.config import CAS_COLUMN_INPUT, FOOD_CONTACT_CHEMICAL_COLUMN, GROUPS_OF_CONCERN_COLUMN, SMILES_COLUMN_INPUT, TIER_OF_FCCPRIO_COLUMN
+from app_modules.config import CAS_COLUMN_INPUT, FOOD_CONTACT_CHEMICAL_COLUMN, GROUPS_OF_CONCERN_COLUMN, HAZARD_COLUMN, SMILES_COLUMN_INPUT, TIER_OF_FCCPRIO_COLUMN
 
 
 @st.cache_data
@@ -77,7 +77,7 @@ def build_display_results_df(results_df: pd.DataFrame, display_columns: List[str
         return results_df[available_columns].copy()
 
     fallback_columns = [
-        column_name for column_name in [FOOD_CONTACT_CHEMICAL_COLUMN, TIER_OF_FCCPRIO_COLUMN, GROUPS_OF_CONCERN_COLUMN]
+        column_name for column_name in [FOOD_CONTACT_CHEMICAL_COLUMN, TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUPS_OF_CONCERN_COLUMN]
         if column_name in results_df.columns
     ]
     if fallback_columns:
@@ -132,24 +132,8 @@ def _canonicalize_smiles(smiles: str) -> Optional[str]:
         return None
 
 
-def _to_bool(value: object) -> bool:
-    """Best-effort conversion from lookup values to boolean."""
-    if pd.isna(value):
-        return False
-    text = str(value).strip().lower()
-    if text in {"1", "true", "yes", "y"}:
-        return True
-    if text in {"0", "false", "no", "n", ""}:
-        return False
-    return False
-
-
 def _build_fcc_lookups_from_smiles_lookup(lookup_df: pd.DataFrame) -> Tuple[Dict[str, str], Dict[str, bool], Dict[str, str], Dict[str, bool]]:
     """Build CAS and SMILES lookup maps for FCC tier and FCC status."""
-    required = {CAS_COLUMN_INPUT, "Tier of FCCprio"}
-    if not required.issubset(lookup_df.columns):
-        return {}, {}, {}, {}
-
     work_df = lookup_df.copy()
     work_df["cas_norm"] = work_df[CAS_COLUMN_INPUT].astype(str).str.strip()
 
@@ -160,10 +144,13 @@ def _build_fcc_lookups_from_smiles_lookup(lookup_df: pd.DataFrame) -> Tuple[Dict
     else:
         work_df["smiles_norm"] = ""
 
-    if {"inFCCdb", "inFCCmigex"}.issubset(work_df.columns):
-        work_df["fcc_flag"] = work_df["inFCCdb"].apply(_to_bool) | work_df["inFCCmigex"].apply(_to_bool)
-    else:
-        work_df["fcc_flag"] = True
+    work_df["fcc_flag"] = work_df.apply(
+        lambda x: "In FCCdb and FCCmigex" if x["inFCCdb"] and x["inFCCmigex"] 
+            else ("In FCCdb" if x["inFCCdb"] 
+            else ("In FCCmigex" if x["inFCCmigex"] 
+            else "Not a FCC")),
+        axis=1
+    )
 
     def first_non_empty(values: pd.Series) -> str:
         for value in values:
@@ -173,13 +160,15 @@ def _build_fcc_lookups_from_smiles_lookup(lookup_df: pd.DataFrame) -> Tuple[Dict
 
     cas_df = work_df[work_df["cas_norm"] != ""]
     cas_tier_lookup = cas_df.groupby("cas_norm")["Tier of FCCprio"].apply(first_non_empty).to_dict()
-    cas_fcc_lookup = cas_df.groupby("cas_norm")["fcc_flag"].any().to_dict()
+    cas_hazard_lookup = cas_df.groupby("cas_norm")[HAZARD_COLUMN].apply(first_non_empty).to_dict()
+    cas_fcc_lookup = cas_df.groupby("cas_norm")["fcc_flag"].apply(first_non_empty).to_dict()
 
     smiles_df = work_df[work_df["smiles_norm"] != ""]
     smiles_tier_lookup = smiles_df.groupby("smiles_norm")["Tier of FCCprio"].apply(first_non_empty).to_dict()
-    smiles_fcc_lookup = smiles_df.groupby("smiles_norm")["fcc_flag"].any().to_dict()
+    smiles_hazard_lookup = smiles_df.groupby("smiles_norm")[HAZARD_COLUMN].apply(first_non_empty).to_dict()
+    smiles_fcc_lookup = smiles_df.groupby("smiles_norm")["fcc_flag"].apply(first_non_empty).to_dict()
 
-    return cas_tier_lookup, cas_fcc_lookup, smiles_tier_lookup, smiles_fcc_lookup
+    return cas_tier_lookup, cas_fcc_lookup, cas_hazard_lookup, smiles_tier_lookup, smiles_fcc_lookup, smiles_hazard_lookup
 
 
 def run_grouping_pipeline(analysis_df: pd.DataFrame, mapping_payload: Dict[str, object], grouping_methods: List[str]) -> pd.DataFrame:
@@ -201,27 +190,27 @@ def run_grouping_pipeline(analysis_df: pd.DataFrame, mapping_payload: Dict[str, 
     results_df = _flatten_results_columns(results_df)
 
     smiles_lookup_df = load_smiles_lookup()
-    if smiles_lookup_df is not None:
-        cas_tier_lookup, cas_fcc_lookup, smiles_tier_lookup, smiles_fcc_lookup = _build_fcc_lookups_from_smiles_lookup(smiles_lookup_df)
-    else:
-        cas_tier_lookup, cas_fcc_lookup, smiles_tier_lookup, smiles_fcc_lookup = {}, {}, {}, {}
+    cas_tier_lookup, cas_fcc_lookup, cas_hazard_lookup, smiles_tier_lookup, smiles_fcc_lookup, smiles_hazard_lookup = _build_fcc_lookups_from_smiles_lookup(smiles_lookup_df)
 
     results_df[FOOD_CONTACT_CHEMICAL_COLUMN] = ""
     results_df[TIER_OF_FCCPRIO_COLUMN] = ""
+    results_df[HAZARD_COLUMN] = ""
 
     if CAS_COLUMN_INPUT in results_df.columns:
         cas_norm = results_df[CAS_COLUMN_INPUT].astype(str).str.strip()
-        results_df[FOOD_CONTACT_CHEMICAL_COLUMN] = cas_norm.map(lambda x: "Yes" if cas_fcc_lookup.get(x, False) else "No")
+        results_df[FOOD_CONTACT_CHEMICAL_COLUMN] = cas_norm.map(lambda x: cas_fcc_lookup.get(x, "Not a FCC"))
         results_df[TIER_OF_FCCPRIO_COLUMN] = cas_norm.map(cas_tier_lookup).fillna("")
+        results_df[HAZARD_COLUMN] = cas_norm.map(cas_hazard_lookup).fillna("")
 
     if SMILES_COLUMN_INPUT in results_df.columns:
         canonical_smiles = results_df[SMILES_COLUMN_INPUT].astype(str).apply(_canonicalize_smiles)
         unresolved_mask = results_df[TIER_OF_FCCPRIO_COLUMN].astype(str).str.strip() == ""
 
         smiles_tier_series = canonical_smiles.map(smiles_tier_lookup).fillna("")
-        smiles_fcc_series = canonical_smiles.map(lambda x: "Yes" if smiles_fcc_lookup.get(x, False) else "No")
+        smiles_fcc_series = canonical_smiles.map(lambda x: smiles_fcc_lookup.get(x, "Not a FCC"))
 
         results_df.loc[unresolved_mask, TIER_OF_FCCPRIO_COLUMN] = smiles_tier_series[unresolved_mask]
+        results_df.loc[unresolved_mask, HAZARD_COLUMN] = canonical_smiles.map(smiles_hazard_lookup).fillna("")[unresolved_mask]
 
         unresolved_fcc_mask = (results_df[FOOD_CONTACT_CHEMICAL_COLUMN].astype(str).str.strip() == "") | (
             results_df[FOOD_CONTACT_CHEMICAL_COLUMN].astype(str).str.strip() == "No"
