@@ -218,12 +218,12 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
 
     download_scope = st.selectbox(
         "What would you like to download?",
-        options=[DOWNLOAD_SCOPE_WHOLE, DOWNLOAD_SCOPE_DISPLAYED],
+        options=[DOWNLOAD_SCOPE_DISPLAYED, DOWNLOAD_SCOPE_WHOLE],
         key="download_scope_selector",
         help=(
-            "Whole dataset: every analyzed chemical with all available columns. "
             "Displayed results only: exactly the rows and columns shown in the table above, "
             "including any active filters."
+            "Whole dataset: every analyzed chemical with all available columns. "
         ),
     )
 
