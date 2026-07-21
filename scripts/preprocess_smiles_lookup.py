@@ -20,12 +20,7 @@ from queue import Queue, Empty
 # Add src to path
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root / "src"))
-
-try:
-    from fccgroup.molecular.composition import align_bundle_coords
-except ImportError:
-    print("Warning: Could not import align_bundle_coords, using basic enumeration")
-    align_bundle_coords = lambda x: x
+from fccgroup.molecular.composition import align_bundle_coords
 
 
 def canonicalize_smiles(smiles: str) -> str:
@@ -204,7 +199,7 @@ def main():
     assets_path = project_root / "assets"
     
     # Input: FCC database (the one used in app.py)
-    input_path = assets_path / "FCCuniverse_grouping_in.xlsx"
+    input_path = assets_path / "FCCuniverse.xlsx"
     
     # Output: SMILES lookup table
     output_path = assets_path / "smiles_lookup.tsv"

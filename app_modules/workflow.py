@@ -76,6 +76,7 @@ _TAB_CONTENT = {
         ],
         "links": [
             {"label": "FCCprio Data (Zenodo)", "icon": "fas fa-database", "url": "https://doi.org/10.5281/zenodo.14881617"},
+            {"label": "FCCprio Publication", "icon": "fas fa-file-invoice", "url": "https://doi.org/10.1021/acs.est.5c15186"},
         ],
     },
     "struct_grp": {
@@ -110,6 +111,7 @@ _TAB_CONTENT = {
         ],
         "links": [
             {"label": "FCCgroup on PyPI", "icon": "fas fa-cube", "url": "https://pypi.org/project/fccgroup/"},
+            {"label": "FCCgroup Publication", "icon": "fas fa-file-invoice", "url": "https://doi.org/10.1021/acs.est.5c15186"},
         ],
     },
 }

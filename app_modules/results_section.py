@@ -7,6 +7,20 @@ import streamlit as st
 
 from app_modules.config import DISPLAY_RESULT_COLUMNS
 from app_modules.processing import build_display_results_df
+from app_modules.config import CHEMICAL_NAMES_COLUMN, FOOD_CONTACT_CHEMICAL_COLUMN, FORMULA_COLUMN, RENAME_DICT, TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUPS_OF_CONCERN_COLUMN, CAS_COLUMN, SMILES_COLUMN
+
+
+def _fcc_status_to_tags(value: object) -> list:
+    """Convert an FCC status string into read-only tags for ListColumn display."""
+    text = str(value).lower()
+    tags = []
+    if "fccdb" in text:
+        tags.append("FCCdb")
+    if "fccmigex" in text:
+        tags.append("FCCmigex")
+    if "not a fcc" in text:
+        tags.append("Not a FCC")
+    return tags
 
 
 def _has_non_empty_value(value: object) -> bool:
@@ -23,7 +37,7 @@ def _has_non_empty_value(value: object) -> bool:
 def render_results_section(full_results_df: pd.DataFrame) -> None:
     """Render summary metrics, filters, table, and export controls."""
     results_df = full_results_df.copy()
-    results_df = results_df.rename(columns={"casId": "CAS RN", "SMILES": "SMILES", "column_names": "Chemical names", "formula": "Formula"})
+    results_df = results_df.rename(columns=RENAME_DICT)
     if len(results_df) == 0:
         st.warning("⚠️ No results to display. The dataframe is empty.")
         return
@@ -50,28 +64,27 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
     total_count = len(results_df)
     metrics = [("Total Chemicals", total_count, "🧪")]
 
-    if "SMILES" in results_df.columns:
-        valid_smiles_count = int(results_df["SMILES"].apply(_has_non_empty_value).sum())
+    if SMILES_COLUMN in results_df.columns:
+        valid_smiles_count = int(results_df[SMILES_COLUMN].apply(_has_non_empty_value).sum())
         metrics.append(("Valid SMILES", f"{valid_smiles_count}/{total_count}", "🧬"))
     else:
         metrics.append(("Valid SMILES", "N/A", "🧬"))
 
-    fcc_status_col = "is Food Contact Chemical"
-    fcc_tier_col = "Tier of FCCprio"
-
-    if fcc_status_col in results_df.columns:
-        food_contact_count = int(results_df[fcc_status_col].apply(lambda x: x=="Yes").sum())
+    if FOOD_CONTACT_CHEMICAL_COLUMN in results_df.columns:
+        food_contact_count = int(results_df[FOOD_CONTACT_CHEMICAL_COLUMN].apply(lambda x: x!="Not a FCC").sum())
         metrics.append(("Food Contact", f"{food_contact_count}/{total_count}", "🗄️"))
 
-    if fcc_tier_col in results_df.columns:
-        fcc_tier_count = int(results_df[fcc_tier_col].apply(_has_non_empty_value).sum())
+    if TIER_OF_FCCPRIO_COLUMN in results_df.columns:
+        fcc_tier_count = int(results_df[TIER_OF_FCCPRIO_COLUMN].apply(_has_non_empty_value).sum())
         metrics.append(("FCCprio Tier", f"{fcc_tier_count}/{total_count}", "🎯"))
 
-    if "Groups of concern" in results_df.columns:
-        groups_count = int(results_df["Groups of concern"].apply(_has_non_empty_value).sum())
-        metrics.append(("With Groups", f"{groups_count}/{total_count}", "🔬"))
+    if GROUPS_OF_CONCERN_COLUMN in results_df.columns:
+        groups_count = int(results_df[GROUPS_OF_CONCERN_COLUMN].apply(_has_non_empty_value).sum())
+        metrics.append(("With Priority Groups", f"{groups_count}/{total_count}", "🔬"))
+    print(results_df.columns)
+    results_df[[TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUPS_OF_CONCERN_COLUMN]] = results_df[[TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUPS_OF_CONCERN_COLUMN]].replace("", "NA")
 
-    results_df[["Tier of FCCprio", "Groups of concern"]] = results_df[["Tier of FCCprio", "Groups of concern"]].replace("", "NA")
+    unfiltered_results_df = results_df.copy()
 
     cards_html = "".join(
         f'<div class="metric-card">'
@@ -95,35 +108,45 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
         unsafe_allow_html=True,
     )
 
-    filter_col1, filter_col2, filter_col3 = st.columns(3)
+    filter_col1, filter_col2, filter_col3, filter_col4 = st.columns(4)
     with filter_col1:
-        if fcc_status_col in results_df.columns:
+        if FOOD_CONTACT_CHEMICAL_COLUMN in results_df.columns:
             fcc_filter = st.multiselect(
-                "Filter by FCC Status",
-                options=results_df[fcc_status_col].unique(),
+                f"Filter by {FOOD_CONTACT_CHEMICAL_COLUMN.replace('is ', '')}",
+                options=results_df[FOOD_CONTACT_CHEMICAL_COLUMN].unique(),
                 default=None,
             )
             if fcc_filter:
-                results_df = results_df[results_df[fcc_status_col].isin(fcc_filter)]
+                results_df = results_df[results_df[FOOD_CONTACT_CHEMICAL_COLUMN].str.contains(fcc_filter)]
 
     with filter_col2:
-        if fcc_tier_col in results_df.columns:
+        if TIER_OF_FCCPRIO_COLUMN in results_df.columns:
             tier_filter = st.multiselect(
-                "Filter by FCCprio Tier",
-                options=sorted([t for t in results_df[fcc_tier_col].unique() if t != ""]),
+                f"Filter by {TIER_OF_FCCPRIO_COLUMN}",
+                options=sorted([t for t in results_df[TIER_OF_FCCPRIO_COLUMN].unique() if t != ""]),
                 default=None,
             )
             if tier_filter:
-                results_df = results_df[results_df[fcc_tier_col].isin(tier_filter)]
+                results_df = results_df[results_df[TIER_OF_FCCPRIO_COLUMN].isin(tier_filter)]
 
     with filter_col3:
-        if "Groups of concern" in results_df.columns:
-            groups_concern = results_df["Groups of concern"].str.split(",").explode().unique()
+        if HAZARD_COLUMN in results_df.columns:
+            tier_filter = st.multiselect(
+                f"Filter by {HAZARD_COLUMN}",
+                options=sorted([t for t in results_df[HAZARD_COLUMN].str.split(", ").explode().unique()]),
+                default=None,
+            )
+            if tier_filter:
+                results_df = results_df[results_df[HAZARD_COLUMN].apply(lambda x: all(h in x.split(", ") for h in tier_filter))]
 
-            group_col1, group_col2 = st.columns([3, 1])
+    with filter_col4:
+        if GROUPS_OF_CONCERN_COLUMN in results_df.columns:
+            groups_concern = results_df[GROUPS_OF_CONCERN_COLUMN].str.split(",").explode().unique()
+
+            group_col1, group_col2 = st.columns([2, 1])
             with group_col1:
                 group_filter = st.multiselect(
-                    "Filter by Groups of Concern",
+                    f"Filter by {GROUPS_OF_CONCERN_COLUMN}",
                     options=sorted([g.strip() for g in groups_concern if g and str(g).strip() != ""]),
                     default=None,
                     key="groups_multiselect",
@@ -149,9 +172,27 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
                 else:
                     filter_func = lambda x: all(g.strip() in str(x) for g in group_filter)
 
-                results_df = results_df[results_df["Groups of concern"].apply(filter_func)]
+                results_df = results_df[results_df[GROUPS_OF_CONCERN_COLUMN].apply(filter_func)]
     display_results_df = build_display_results_df(results_df, DISPLAY_RESULT_COLUMNS)
-    st.dataframe(display_results_df, use_container_width=True)
+
+    table_df = display_results_df.copy()
+    column_config = {}
+    if FOOD_CONTACT_CHEMICAL_COLUMN in table_df.columns:
+        table_df[FOOD_CONTACT_CHEMICAL_COLUMN] = table_df[FOOD_CONTACT_CHEMICAL_COLUMN].apply(_fcc_status_to_tags)
+        column_config[FOOD_CONTACT_CHEMICAL_COLUMN] = st.column_config.MultiselectColumn(
+            FOOD_CONTACT_CHEMICAL_COLUMN,
+            help="Databases listing this chemical as a food contact chemical (FCCdb, fccmigex).",
+            accept_new_options=False,
+            options=[
+                "FCCdb",
+                "FCCmigex",
+                "Not a FCC",
+            ],
+            disabled=True,
+            color = ["#0aaa99", "#f4ad20", "grey"],
+        )
+
+    st.dataframe(table_df, use_container_width=True, column_config=column_config)
 
     
     st.markdown(
@@ -162,15 +203,34 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
         """,
         unsafe_allow_html=True,
     )
-    identifier_cols = ["CAS RN", "SMILES", "Chemical names", "Formula"]
-    enrichment_cols = ["is Food Contact Chemical", "Tier of FCCprio", "Groups of concern"]
+    identifier_cols = [CAS_COLUMN, SMILES_COLUMN, CHEMICAL_NAMES_COLUMN, FORMULA_COLUMN]
+    enrichment_cols = [FOOD_CONTACT_CHEMICAL_COLUMN, TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUPS_OF_CONCERN_COLUMN]
 
-    col_order = []
-    col_order.extend([c for c in identifier_cols if c in results_df.columns])
-    col_order.extend([c for c in enrichment_cols if c in results_df.columns])
-    col_order.extend([c for c in results_df.columns if c not in col_order])
+    def _order_export_columns(dataframe: pd.DataFrame) -> pd.DataFrame:
+        col_order = []
+        col_order.extend([c for c in identifier_cols if c in dataframe.columns])
+        col_order.extend([c for c in enrichment_cols if c in dataframe.columns])
+        col_order.extend([c for c in dataframe.columns if c not in col_order])
+        return dataframe[col_order]
 
-    export_results_df = results_df[col_order]
+    DOWNLOAD_SCOPE_WHOLE = "Whole dataset (all columns)"
+    DOWNLOAD_SCOPE_DISPLAYED = "Displayed results only (current filters and columns)"
+
+    download_scope = st.selectbox(
+        "What would you like to download?",
+        options=[DOWNLOAD_SCOPE_DISPLAYED, DOWNLOAD_SCOPE_WHOLE],
+        key="download_scope_selector",
+        help=(
+            "Displayed results only: exactly the rows and columns shown in the table above, "
+            "including any active filters."
+            "Whole dataset: every analyzed chemical with all available columns. "
+        ),
+    )
+
+    if download_scope == DOWNLOAD_SCOPE_DISPLAYED:
+        export_results_df = display_results_df.copy()
+    else:
+        export_results_df = _order_export_columns(unfiltered_results_df)
 
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:

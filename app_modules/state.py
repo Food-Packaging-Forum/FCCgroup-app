@@ -3,6 +3,7 @@
 import os
 
 import streamlit as st
+from app_modules.config import CAS_COLUMN_INPUT
 from fccgroup import GroupingMethod
 
 
@@ -14,7 +15,7 @@ def initialize_session_state() -> None:
         "active_page": "main",
         "cas_input_text": "",
         "uploaded_df": None,
-        "input_type": "casId",
+        "input_type": CAS_COLUMN_INPUT,
         "input_mode": "Manual Entry",
         "mapping_payload": {},
         "grouper_signature": None,
