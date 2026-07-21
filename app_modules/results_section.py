@@ -71,6 +71,8 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
     print(results_df.columns)
     results_df[[TIER_OF_FCCPRIO_COLUMN, GROUPS_OF_CONCERN_COLUMN]] = results_df[[TIER_OF_FCCPRIO_COLUMN, GROUPS_OF_CONCERN_COLUMN]].replace("", "NA")
 
+    unfiltered_results_df = results_df.copy()
+
     cards_html = "".join(
         f'<div class="metric-card">'
         f'<div class="metric-card-icon">{icon}</div>'
@@ -163,12 +165,31 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
     identifier_cols = [CAS_COLUMN, SMILES_COLUMN, CHEMICAL_NAMES_COLUMN, FORMULA_COLUMN]
     enrichment_cols = [FOOD_CONTACT_CHEMICAL_COLUMN, TIER_OF_FCCPRIO_COLUMN, GROUPS_OF_CONCERN_COLUMN]
 
-    col_order = []
-    col_order.extend([c for c in identifier_cols if c in results_df.columns])
-    col_order.extend([c for c in enrichment_cols if c in results_df.columns])
-    col_order.extend([c for c in results_df.columns if c not in col_order])
+    def _order_export_columns(dataframe: pd.DataFrame) -> pd.DataFrame:
+        col_order = []
+        col_order.extend([c for c in identifier_cols if c in dataframe.columns])
+        col_order.extend([c for c in enrichment_cols if c in dataframe.columns])
+        col_order.extend([c for c in dataframe.columns if c not in col_order])
+        return dataframe[col_order]
 
-    export_results_df = results_df[col_order]
+    DOWNLOAD_SCOPE_WHOLE = "Whole dataset (all columns)"
+    DOWNLOAD_SCOPE_DISPLAYED = "Displayed results only (current filters and columns)"
+
+    download_scope = st.selectbox(
+        "What would you like to download?",
+        options=[DOWNLOAD_SCOPE_WHOLE, DOWNLOAD_SCOPE_DISPLAYED],
+        key="download_scope_selector",
+        help=(
+            "Whole dataset: every analyzed chemical with all available columns. "
+            "Displayed results only: exactly the rows and columns shown in the table above, "
+            "including any active filters."
+        ),
+    )
+
+    if download_scope == DOWNLOAD_SCOPE_DISPLAYED:
+        export_results_df = display_results_df.copy()
+    else:
+        export_results_df = _order_export_columns(unfiltered_results_df)
 
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
