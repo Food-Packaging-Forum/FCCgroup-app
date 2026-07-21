@@ -7,7 +7,20 @@ import streamlit as st
 
 from app_modules.config import DISPLAY_RESULT_COLUMNS
 from app_modules.processing import build_display_results_df
-from app_modules.config import CHEMICAL_NAMES_COLUMN, FOOD_CONTACT_CHEMICAL_COLUMN, FORMULA_COLUMN, RENAME_DICT, TIER_OF_FCCPRIO_COLUMN, GROUPS_OF_CONCERN_COLUMN, CAS_COLUMN, SMILES_COLUMN
+from app_modules.config import CHEMICAL_NAMES_COLUMN, FOOD_CONTACT_CHEMICAL_COLUMN, FORMULA_COLUMN, RENAME_DICT, TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUPS_OF_CONCERN_COLUMN, CAS_COLUMN, SMILES_COLUMN
+
+
+def _fcc_status_to_tags(value: object) -> list:
+    """Convert an FCC status string into read-only tags for ListColumn display."""
+    text = str(value).lower()
+    tags = []
+    if "fccdb" in text:
+        tags.append("FCCdb")
+    if "fccmigex" in text:
+        tags.append("FCCmigex")
+    if "not a fcc" in text:
+        tags.append("Not a FCC")
+    return tags
 
 
 def _has_non_empty_value(value: object) -> bool:
@@ -58,7 +71,7 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
         metrics.append(("Valid SMILES", "N/A", "🧬"))
 
     if FOOD_CONTACT_CHEMICAL_COLUMN in results_df.columns:
-        food_contact_count = int(results_df[FOOD_CONTACT_CHEMICAL_COLUMN].apply(lambda x: x=="Yes").sum())
+        food_contact_count = int(results_df[FOOD_CONTACT_CHEMICAL_COLUMN].apply(lambda x: x!="Not a FCC").sum())
         metrics.append(("Food Contact", f"{food_contact_count}/{total_count}", "🗄️"))
 
     if TIER_OF_FCCPRIO_COLUMN in results_df.columns:
@@ -69,7 +82,7 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
         groups_count = int(results_df[GROUPS_OF_CONCERN_COLUMN].apply(_has_non_empty_value).sum())
         metrics.append(("With Priority Groups", f"{groups_count}/{total_count}", "🔬"))
     print(results_df.columns)
-    results_df[[TIER_OF_FCCPRIO_COLUMN, GROUPS_OF_CONCERN_COLUMN]] = results_df[[TIER_OF_FCCPRIO_COLUMN, GROUPS_OF_CONCERN_COLUMN]].replace("", "NA")
+    results_df[[TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUPS_OF_CONCERN_COLUMN]] = results_df[[TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUPS_OF_CONCERN_COLUMN]].replace("", "NA")
 
     unfiltered_results_df = results_df.copy()
 
@@ -95,7 +108,7 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
         unsafe_allow_html=True,
     )
 
-    filter_col1, filter_col2, filter_col3 = st.columns(3)
+    filter_col1, filter_col2, filter_col3, filter_col4 = st.columns(4)
     with filter_col1:
         if FOOD_CONTACT_CHEMICAL_COLUMN in results_df.columns:
             fcc_filter = st.multiselect(
@@ -104,7 +117,7 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
                 default=None,
             )
             if fcc_filter:
-                results_df = results_df[results_df[FOOD_CONTACT_CHEMICAL_COLUMN].isin(fcc_filter)]
+                results_df = results_df[results_df[FOOD_CONTACT_CHEMICAL_COLUMN].str.contains(fcc_filter)]
 
     with filter_col2:
         if TIER_OF_FCCPRIO_COLUMN in results_df.columns:
@@ -117,10 +130,20 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
                 results_df = results_df[results_df[TIER_OF_FCCPRIO_COLUMN].isin(tier_filter)]
 
     with filter_col3:
+        if HAZARD_COLUMN in results_df.columns:
+            tier_filter = st.multiselect(
+                f"Filter by {HAZARD_COLUMN}",
+                options=sorted([t for t in results_df[HAZARD_COLUMN].str.split(", ").explode().unique()]),
+                default=None,
+            )
+            if tier_filter:
+                results_df = results_df[results_df[HAZARD_COLUMN].apply(lambda x: all(h in x.split(", ") for h in tier_filter))]
+
+    with filter_col4:
         if GROUPS_OF_CONCERN_COLUMN in results_df.columns:
             groups_concern = results_df[GROUPS_OF_CONCERN_COLUMN].str.split(",").explode().unique()
 
-            group_col1, group_col2 = st.columns([3, 1])
+            group_col1, group_col2 = st.columns([2, 1])
             with group_col1:
                 group_filter = st.multiselect(
                     f"Filter by {GROUPS_OF_CONCERN_COLUMN}",
@@ -151,7 +174,25 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
 
                 results_df = results_df[results_df[GROUPS_OF_CONCERN_COLUMN].apply(filter_func)]
     display_results_df = build_display_results_df(results_df, DISPLAY_RESULT_COLUMNS)
-    st.dataframe(display_results_df, use_container_width=True)
+
+    table_df = display_results_df.copy()
+    column_config = {}
+    if FOOD_CONTACT_CHEMICAL_COLUMN in table_df.columns:
+        table_df[FOOD_CONTACT_CHEMICAL_COLUMN] = table_df[FOOD_CONTACT_CHEMICAL_COLUMN].apply(_fcc_status_to_tags)
+        column_config[FOOD_CONTACT_CHEMICAL_COLUMN] = st.column_config.MultiselectColumn(
+            FOOD_CONTACT_CHEMICAL_COLUMN,
+            help="Databases listing this chemical as a food contact chemical (FCCdb, fccmigex).",
+            accept_new_options=False,
+            options=[
+                "FCCdb",
+                "FCCmigex",
+                "Not a FCC",
+            ],
+            disabled=True,
+            color = ["#0aaa99", "#f4ad20", "grey"],
+        )
+
+    st.dataframe(table_df, use_container_width=True, column_config=column_config)
 
     
     st.markdown(
@@ -163,7 +204,7 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
         unsafe_allow_html=True,
     )
     identifier_cols = [CAS_COLUMN, SMILES_COLUMN, CHEMICAL_NAMES_COLUMN, FORMULA_COLUMN]
-    enrichment_cols = [FOOD_CONTACT_CHEMICAL_COLUMN, TIER_OF_FCCPRIO_COLUMN, GROUPS_OF_CONCERN_COLUMN]
+    enrichment_cols = [FOOD_CONTACT_CHEMICAL_COLUMN, TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUPS_OF_CONCERN_COLUMN]
 
     def _order_export_columns(dataframe: pd.DataFrame) -> pd.DataFrame:
         col_order = []
