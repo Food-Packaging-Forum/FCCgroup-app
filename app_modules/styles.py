@@ -288,19 +288,100 @@ GLOBAL_CSS = """
         margin: 0 0 1.25rem 0;
     }
 
-    /* Page footer */
+    /* Full-width blue footer band — breaks out of the centered container
+       using the same 100vw technique as .section-gradient-divider */
+    .footer-band {
+        position: relative;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100vw;
+        background: var(--fpf-blue);
+        margin: 4rem 0 0 0;
+        padding: 2.5rem 1.5rem 2rem 1.5rem;
+        box-sizing: border-box;
+    }
+
+    .footer-band-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    /* Feedback widget */
+    .feedback-widget {
+        text-align: center;
+    }
+
+    .feedback-widget-title {
+        font-size: 1rem;
+        font-weight: 700;
+        font-family: 'Poppins', 'Segoe UI', sans-serif;
+        color: #ffffff;
+        margin-bottom: 1rem;
+    }
+
+    .feedback-btn-row {
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .feedback-btn,
+    .feedback-btn:link,
+    .feedback-btn:visited {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.1rem;
+        background: rgba(255, 255, 255, 0.12);
+        color: #ffffff !important;
+        border: 2px solid rgba(255, 255, 255, 0.7);
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        font-family: 'Open Sans', 'Segoe UI', sans-serif;
+        text-decoration: none !important;
+        transition: all 0.25s ease;
+        cursor: pointer;
+    }
+
+    .feedback-btn span {
+        color: #ffffff !important;
+    }
+
+    .feedback-btn:hover,
+    .feedback-btn:hover span {
+        color: var(--fpf-dark-blue) !important;
+    }
+
+    .feedback-btn:hover {
+        transform: translateY(-2px);
+        background: #ffffff;
+        border-color: #ffffff;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Page footer (license row inside the blue band) */
     .page-footer {
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 2rem;
-        padding: 0.5rem 0 1rem 0;
         flex-wrap: wrap;
     }
 
     .page-footer img.fpf-logo {
         height: 36px;
         width: auto;
+        background: #ffffff;
+        padding: 0.4rem 0.6rem;
+        border-radius: 8px;
+        box-sizing: content-box;
     }
 
     .page-footer-license {
@@ -311,7 +392,7 @@ GLOBAL_CSS = """
 
     .page-footer-text {
         font-size: 0.85rem;
-        color: var(--fpf-muted);
+        color: #ffffff !important;
     }
 
     .workflow-section-boxes {
@@ -555,21 +636,48 @@ def render_page_header(active_page: str = "main") -> tuple[bool, bool]:
     return go_to_workflow, go_to_analysis
 
 
+_ISSUES_BASE_URL = "https://github.com/Food-Packaging-Forum/FCCgroup-app/issues/new"
+_FEEDBACK_OPTIONS = [
+    ("🐛", "Report a bug", f"{_ISSUES_BASE_URL}?template=bug_report.md"),
+    ("💡", "Request a feature", f"{_ISSUES_BASE_URL}?template=feature_request.md"),
+    ("💬", "Other feedback", _ISSUES_BASE_URL),
+]
+
+
+def _feedback_html() -> str:
+    """Build the feedback buttons block linking to GitHub issue templates."""
+    buttons_html = "".join(
+        f'<a href="{url}" target="_blank" rel="noopener noreferrer" class="feedback-btn">'
+        f'<span>{icon}</span><span>{label}</span></a>'
+        for icon, label, url in _FEEDBACK_OPTIONS
+    )
+    return (
+        '<div class="feedback-widget">'
+        '<div class="feedback-widget-title">Have feedback? Help us improve FCCgroup</div>'
+        f'<div class="feedback-btn-row">{buttons_html}</div>'
+        '</div>'
+    )
+
+
 def render_footer() -> None:
-    """Render horizontal footer with logo and license."""
+    """Render full-width blue footer band with feedback buttons, logo, and license."""
     fpf_logo_path = Path(__file__).resolve().parents[1] / "assets" / "fpf_logo_RGB_vector_SVG.svg"
     fpf_logo_src = _svg_as_data_uri(fpf_logo_path)
 
-    st.markdown("---")
     st.markdown(
         f"""
-        <div class="page-footer">
-            <img src="{fpf_logo_src}" class="fpf-logo" alt="Food Packaging Forum">
-            <div class="page-footer-license">
-                <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" style="line-height:0;">
-                    <img src="https://licensebuttons.net/l/by/4.0/88x31.png" alt="CC BY 4.0">
-                </a>
-                <span class="page-footer-text">© 2026 Food Packaging Forum — CC BY 4.0</span>
+        <div class="footer-band">
+            <div class="footer-band-inner">
+                {_feedback_html()}
+                <div class="page-footer">
+                    <img src="{fpf_logo_src}" class="fpf-logo" alt="Food Packaging Forum">
+                    <div class="page-footer-license">
+                        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" style="line-height:0;">
+                            <img src="https://licensebuttons.net/l/by/4.0/88x31.png" alt="CC BY 4.0">
+                        </a>
+                        <span class="page-footer-text">© 2026 Food Packaging Forum — CC BY 4.0</span>
+                    </div>
+                </div>
             </div>
         </div>
         """,
