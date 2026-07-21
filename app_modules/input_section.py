@@ -5,7 +5,7 @@ from typing import List, Tuple
 import pandas as pd
 import streamlit as st
 
-from app_modules.config import MAPPING_FIELD_LABELS, build_default_mapping_payload
+from app_modules.config import CAS_COLUMN_INPUT, MAPPING_FIELD_LABELS, SMILES_COLUMN_INPUT, build_default_mapping_payload
 from app_modules.styles import apply_mode_button_styles
 
 
@@ -25,21 +25,21 @@ def _reset_for_new_analysis() -> None:
 def _render_manual_entry() -> List[str]:
     """Render manual CAS/SMILES entry mode and return unique values."""
     input_type_options = {
-        "CAS": "casId",
-        "SMILES": "SMILES",
+        "CAS": CAS_COLUMN_INPUT,
+        "SMILES": SMILES_COLUMN_INPUT,
     }
     input_type = st.radio(
         "Input Type:",
         options=["CAS", "SMILES"],
-        index=0 if st.session_state.input_type == "casId" else 1,
+        index=0 if st.session_state.input_type == CAS_COLUMN_INPUT else 1,
         horizontal=True,
         key="input_type_radio",
         help="Choose between CAS Registry Numbers or SMILES notation",
     )
     st.session_state.input_type = input_type_options[input_type]
 
-    input_label = "CAS Registry Numbers" if st.session_state.input_type == "casId" else "SMILES Notation"
-    if st.session_state.input_type == "casId":
+    input_label = "CAS Registry Numbers" if st.session_state.input_type == CAS_COLUMN_INPUT else "SMILES Notation"
+    if st.session_state.input_type == CAS_COLUMN_INPUT:
         placeholder_text = "80-05-7\n538-23-8\n70546-25-7\n..."
         help_text = "Enter one CAS ID per line."
         tips_html = """
@@ -105,7 +105,7 @@ def _render_manual_entry() -> List[str]:
 
         with sub_try:
             if st.button("📝 Try Sample Data", use_container_width=True, key="sample_data_button"):
-                if st.session_state.input_type == "casId":
+                if st.session_state.input_type == CAS_COLUMN_INPUT:
                     sample = "80-05-7\n538-23-8\n70546-25-7\n68134-22-5\n128-37-0\n50-00-0"
                 else:
                     sample = "CC(C)(C1=CC=C(O)C=C1)C1=CC=C(O)C=C1\nCCCCCCCC(=O)OCC(COC(=O)CCCCCCC)OC(=O)CCCCCCC\nCCN(CC)C1=CC2=C(C=C1)C(C#N)=C(C1=NC3=C(S1)C=CC=C3)C(=O)O2\nCC(=O)C(N=NC1=CC=CC=C1C(F)(F)F)C(=O)NC1=CC2=C(NC(=O)N2)C=C1\nCC1=CC(=C(O)C(=C1)C(C)(C)C)C(C)(C)C\nC=O"
@@ -291,7 +291,7 @@ def render_input_section() -> Tuple[pd.DataFrame, bool, int, str, List[str]]:
         if manual_input_values:
             input_summary_ready = True
             input_summary_count = len(manual_input_values)
-            input_summary_label = "CAS ID(s)" if st.session_state.input_type == "casId" else "SMILES string(s)"
+            input_summary_label = "CAS ID(s)" if st.session_state.input_type == CAS_COLUMN_INPUT else "SMILES string(s)"
             input_summary_preview = manual_input_values[:3]
     elif using_uploaded_input:
         mapped_columns: List[str] = []

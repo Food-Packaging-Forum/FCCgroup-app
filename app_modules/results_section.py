@@ -7,6 +7,7 @@ import streamlit as st
 
 from app_modules.config import DISPLAY_RESULT_COLUMNS
 from app_modules.processing import build_display_results_df
+from app_modules.config import CHEMICAL_NAMES_COLUMN, FOOD_CONTACT_CHEMICAL_COLUMN, FORMULA_COLUMN, RENAME_DICT, TIER_OF_FCCPRIO_COLUMN, GROUPS_OF_CONCERN_COLUMN, CAS_COLUMN, SMILES_COLUMN
 
 
 def _has_non_empty_value(value: object) -> bool:
@@ -23,7 +24,7 @@ def _has_non_empty_value(value: object) -> bool:
 def render_results_section(full_results_df: pd.DataFrame) -> None:
     """Render summary metrics, filters, table, and export controls."""
     results_df = full_results_df.copy()
-    results_df = results_df.rename(columns={"casId": "CAS RN", "SMILES": "SMILES", "column_names": "Chemical names", "formula": "Formula"})
+    results_df = results_df.rename(columns=RENAME_DICT)
     if len(results_df) == 0:
         st.warning("⚠️ No results to display. The dataframe is empty.")
         return
@@ -50,28 +51,25 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
     total_count = len(results_df)
     metrics = [("Total Chemicals", total_count, "🧪")]
 
-    if "SMILES" in results_df.columns:
-        valid_smiles_count = int(results_df["SMILES"].apply(_has_non_empty_value).sum())
+    if SMILES_COLUMN in results_df.columns:
+        valid_smiles_count = int(results_df[SMILES_COLUMN].apply(_has_non_empty_value).sum())
         metrics.append(("Valid SMILES", f"{valid_smiles_count}/{total_count}", "🧬"))
     else:
         metrics.append(("Valid SMILES", "N/A", "🧬"))
 
-    fcc_status_col = "is Food Contact Chemical"
-    fcc_tier_col = "Tier of FCCprio"
-
-    if fcc_status_col in results_df.columns:
-        food_contact_count = int(results_df[fcc_status_col].apply(lambda x: x=="Yes").sum())
+    if FOOD_CONTACT_CHEMICAL_COLUMN in results_df.columns:
+        food_contact_count = int(results_df[FOOD_CONTACT_CHEMICAL_COLUMN].apply(lambda x: x=="Yes").sum())
         metrics.append(("Food Contact", f"{food_contact_count}/{total_count}", "🗄️"))
 
-    if fcc_tier_col in results_df.columns:
-        fcc_tier_count = int(results_df[fcc_tier_col].apply(_has_non_empty_value).sum())
+    if TIER_OF_FCCPRIO_COLUMN in results_df.columns:
+        fcc_tier_count = int(results_df[TIER_OF_FCCPRIO_COLUMN].apply(_has_non_empty_value).sum())
         metrics.append(("FCCprio Tier", f"{fcc_tier_count}/{total_count}", "🎯"))
 
-    if "Groups of concern" in results_df.columns:
-        groups_count = int(results_df["Groups of concern"].apply(_has_non_empty_value).sum())
-        metrics.append(("With Groups", f"{groups_count}/{total_count}", "🔬"))
-
-    results_df[["Tier of FCCprio", "Groups of concern"]] = results_df[["Tier of FCCprio", "Groups of concern"]].replace("", "NA")
+    if GROUPS_OF_CONCERN_COLUMN in results_df.columns:
+        groups_count = int(results_df[GROUPS_OF_CONCERN_COLUMN].apply(_has_non_empty_value).sum())
+        metrics.append(("With Priority Groups", f"{groups_count}/{total_count}", "🔬"))
+    print(results_df.columns)
+    results_df[[TIER_OF_FCCPRIO_COLUMN, GROUPS_OF_CONCERN_COLUMN]] = results_df[[TIER_OF_FCCPRIO_COLUMN, GROUPS_OF_CONCERN_COLUMN]].replace("", "NA")
 
     cards_html = "".join(
         f'<div class="metric-card">'
@@ -97,33 +95,33 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
 
     filter_col1, filter_col2, filter_col3 = st.columns(3)
     with filter_col1:
-        if fcc_status_col in results_df.columns:
+        if FOOD_CONTACT_CHEMICAL_COLUMN in results_df.columns:
             fcc_filter = st.multiselect(
-                "Filter by FCC Status",
-                options=results_df[fcc_status_col].unique(),
+                f"Filter by {FOOD_CONTACT_CHEMICAL_COLUMN.replace('is ', '')}",
+                options=results_df[FOOD_CONTACT_CHEMICAL_COLUMN].unique(),
                 default=None,
             )
             if fcc_filter:
-                results_df = results_df[results_df[fcc_status_col].isin(fcc_filter)]
+                results_df = results_df[results_df[FOOD_CONTACT_CHEMICAL_COLUMN].isin(fcc_filter)]
 
     with filter_col2:
-        if fcc_tier_col in results_df.columns:
+        if TIER_OF_FCCPRIO_COLUMN in results_df.columns:
             tier_filter = st.multiselect(
-                "Filter by FCCprio Tier",
-                options=sorted([t for t in results_df[fcc_tier_col].unique() if t != ""]),
+                f"Filter by {TIER_OF_FCCPRIO_COLUMN}",
+                options=sorted([t for t in results_df[TIER_OF_FCCPRIO_COLUMN].unique() if t != ""]),
                 default=None,
             )
             if tier_filter:
-                results_df = results_df[results_df[fcc_tier_col].isin(tier_filter)]
+                results_df = results_df[results_df[TIER_OF_FCCPRIO_COLUMN].isin(tier_filter)]
 
     with filter_col3:
-        if "Groups of concern" in results_df.columns:
-            groups_concern = results_df["Groups of concern"].str.split(",").explode().unique()
+        if GROUPS_OF_CONCERN_COLUMN in results_df.columns:
+            groups_concern = results_df[GROUPS_OF_CONCERN_COLUMN].str.split(",").explode().unique()
 
             group_col1, group_col2 = st.columns([3, 1])
             with group_col1:
                 group_filter = st.multiselect(
-                    "Filter by Groups of Concern",
+                    f"Filter by {GROUPS_OF_CONCERN_COLUMN}",
                     options=sorted([g.strip() for g in groups_concern if g and str(g).strip() != ""]),
                     default=None,
                     key="groups_multiselect",
@@ -149,7 +147,7 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
                 else:
                     filter_func = lambda x: all(g.strip() in str(x) for g in group_filter)
 
-                results_df = results_df[results_df["Groups of concern"].apply(filter_func)]
+                results_df = results_df[results_df[GROUPS_OF_CONCERN_COLUMN].apply(filter_func)]
     display_results_df = build_display_results_df(results_df, DISPLAY_RESULT_COLUMNS)
     st.dataframe(display_results_df, use_container_width=True)
 
@@ -162,8 +160,8 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
         """,
         unsafe_allow_html=True,
     )
-    identifier_cols = ["CAS RN", "SMILES", "Chemical names", "Formula"]
-    enrichment_cols = ["is Food Contact Chemical", "Tier of FCCprio", "Groups of concern"]
+    identifier_cols = [CAS_COLUMN, SMILES_COLUMN, CHEMICAL_NAMES_COLUMN, FORMULA_COLUMN]
+    enrichment_cols = [FOOD_CONTACT_CHEMICAL_COLUMN, TIER_OF_FCCPRIO_COLUMN, GROUPS_OF_CONCERN_COLUMN]
 
     col_order = []
     col_order.extend([c for c in identifier_cols if c in results_df.columns])

@@ -8,6 +8,7 @@ from rdkit import Chem
 
 from fccgroup import ChemicalGrouper, ColumnMapping, GroupingConfig
 from fccgroup.constants import MULTIINDEX_IDENTIFIER_LABEL, MULTIINDEX_STRUCTURAL_LABEL
+from app_modules.config import CAS_COLUMN_INPUT, FOOD_CONTACT_CHEMICAL_COLUMN, GROUPS_OF_CONCERN_COLUMN, SMILES_COLUMN_INPUT, TIER_OF_FCCPRIO_COLUMN
 
 
 @st.cache_data
@@ -76,7 +77,7 @@ def build_display_results_df(results_df: pd.DataFrame, display_columns: List[str
         return results_df[available_columns].copy()
 
     fallback_columns = [
-        column_name for column_name in ["is Food Contact Chemical", "Tier of FCCprio", "Groups of concern"]
+        column_name for column_name in [FOOD_CONTACT_CHEMICAL_COLUMN, TIER_OF_FCCPRIO_COLUMN, GROUPS_OF_CONCERN_COLUMN]
         if column_name in results_df.columns
     ]
     if fallback_columns:
@@ -145,12 +146,12 @@ def _to_bool(value: object) -> bool:
 
 def _build_fcc_lookups_from_smiles_lookup(lookup_df: pd.DataFrame) -> Tuple[Dict[str, str], Dict[str, bool], Dict[str, str], Dict[str, bool]]:
     """Build CAS and SMILES lookup maps for FCC tier and FCC status."""
-    required = {"casId", "Tier of FCCprio"}
+    required = {CAS_COLUMN_INPUT, "Tier of FCCprio"}
     if not required.issubset(lookup_df.columns):
         return {}, {}, {}, {}
 
     work_df = lookup_df.copy()
-    work_df["cas_norm"] = work_df["casId"].astype(str).str.strip()
+    work_df["cas_norm"] = work_df[CAS_COLUMN_INPUT].astype(str).str.strip()
 
     if "canonical_SMILES" in work_df.columns:
         work_df["smiles_norm"] = work_df["canonical_SMILES"].astype(str).str.strip()
@@ -205,25 +206,25 @@ def run_grouping_pipeline(analysis_df: pd.DataFrame, mapping_payload: Dict[str, 
     else:
         cas_tier_lookup, cas_fcc_lookup, smiles_tier_lookup, smiles_fcc_lookup = {}, {}, {}, {}
 
-    results_df["is Food Contact Chemical"] = ""
-    results_df["Tier of FCCprio"] = ""
+    results_df[FOOD_CONTACT_CHEMICAL_COLUMN] = ""
+    results_df[TIER_OF_FCCPRIO_COLUMN] = ""
 
-    if "casId" in results_df.columns:
-        cas_norm = results_df["casId"].astype(str).str.strip()
-        results_df["is Food Contact Chemical"] = cas_norm.map(lambda x: "Yes" if cas_fcc_lookup.get(x, False) else "No")
-        results_df["Tier of FCCprio"] = cas_norm.map(cas_tier_lookup).fillna("")
+    if CAS_COLUMN_INPUT in results_df.columns:
+        cas_norm = results_df[CAS_COLUMN_INPUT].astype(str).str.strip()
+        results_df[FOOD_CONTACT_CHEMICAL_COLUMN] = cas_norm.map(lambda x: "Yes" if cas_fcc_lookup.get(x, False) else "No")
+        results_df[TIER_OF_FCCPRIO_COLUMN] = cas_norm.map(cas_tier_lookup).fillna("")
 
-    if "SMILES" in results_df.columns:
-        canonical_smiles = results_df["SMILES"].astype(str).apply(_canonicalize_smiles)
-        unresolved_mask = results_df["Tier of FCCprio"].astype(str).str.strip() == ""
+    if SMILES_COLUMN_INPUT in results_df.columns:
+        canonical_smiles = results_df[SMILES_COLUMN_INPUT].astype(str).apply(_canonicalize_smiles)
+        unresolved_mask = results_df[TIER_OF_FCCPRIO_COLUMN].astype(str).str.strip() == ""
 
         smiles_tier_series = canonical_smiles.map(smiles_tier_lookup).fillna("")
         smiles_fcc_series = canonical_smiles.map(lambda x: "Yes" if smiles_fcc_lookup.get(x, False) else "No")
 
-        results_df.loc[unresolved_mask, "Tier of FCCprio"] = smiles_tier_series[unresolved_mask]
+        results_df.loc[unresolved_mask, TIER_OF_FCCPRIO_COLUMN] = smiles_tier_series[unresolved_mask]
 
-        unresolved_fcc_mask = (results_df["is Food Contact Chemical"].astype(str).str.strip() == "") | (
-            results_df["is Food Contact Chemical"].astype(str).str.strip() == "No"
+        unresolved_fcc_mask = (results_df[FOOD_CONTACT_CHEMICAL_COLUMN].astype(str).str.strip() == "") | (
+            results_df[FOOD_CONTACT_CHEMICAL_COLUMN].astype(str).str.strip() == "No"
         )
-        results_df.loc[unresolved_fcc_mask, "is Food Contact Chemical"] = smiles_fcc_series[unresolved_fcc_mask]
+        results_df.loc[unresolved_fcc_mask, FOOD_CONTACT_CHEMICAL_COLUMN] = smiles_fcc_series[unresolved_fcc_mask]
     return results_df
