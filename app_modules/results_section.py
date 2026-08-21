@@ -18,8 +18,8 @@ def _fcc_status_to_tags(value: object) -> list:
         tags.append("FCCdb")
     if "fccmigex" in text:
         tags.append("FCCmigex")
-    if "not a fcc" in text:
-        tags.append("Not a FCC")
+    if "not an fcc" in text:
+        tags.append("Not an FCC")
     return tags
 
 
@@ -71,7 +71,7 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
         metrics.append(("Valid SMILES", "N/A", "🧬"))
 
     if FOOD_CONTACT_CHEMICAL_COLUMN in results_df.columns:
-        food_contact_count = int(results_df[FOOD_CONTACT_CHEMICAL_COLUMN].apply(lambda x: x!="Not a FCC").sum())
+        food_contact_count = int(results_df[FOOD_CONTACT_CHEMICAL_COLUMN].apply(lambda x: x!="Not an FCC").sum())
         metrics.append(("Food Contact", f"{food_contact_count}/{total_count}", "🗄️"))
 
     if TIER_OF_FCCPRIO_COLUMN in results_df.columns:
@@ -186,7 +186,7 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
             options=[
                 "FCCdb",
                 "FCCmigex",
-                "Not a FCC",
+                "Not an FCC",
             ],
             disabled=True,
             color = ["#0aaa99", "#f4ad20", "grey"],

@@ -631,7 +631,7 @@ def render_page_header(active_page: str = "main") -> tuple[bool, bool]:
         with col_a:
             go_to_analysis = st.button("🔬 Analysis", key="nav_analysis_button", use_container_width=True)
         with col_w:
-            go_to_workflow = st.button("📖 Detailed Workflow", key="nav_workflow_button", use_container_width=True)
+            go_to_workflow = st.button("📖 How to use", key="nav_workflow_button", use_container_width=True)
 
     return go_to_workflow, go_to_analysis
 
@@ -672,10 +672,10 @@ def render_footer() -> None:
                 <div class="page-footer">
                     <img src="{fpf_logo_src}" class="fpf-logo" alt="Food Packaging Forum">
                     <div class="page-footer-license">
-                        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" style="line-height:0;">
-                            <img src="https://licensebuttons.net/l/by/4.0/88x31.png" alt="CC BY 4.0">
+                        <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" style="line-height:0;">
+                            <img src="https://licensebuttons.net/l/by-sa/4.0/88x31.png" alt="CC BY-SA 4.0">
                         </a>
-                        <span class="page-footer-text">© 2026 Food Packaging Forum — CC BY 4.0</span>
+                        <span class="page-footer-text">© 2026 Food Packaging Forum — CC BY-SA 4.0</span>
                     </div>
                 </div>
             </div>

@@ -148,7 +148,7 @@ def _build_fcc_lookups_from_smiles_lookup(lookup_df: pd.DataFrame) -> Tuple[Dict
         lambda x: "In FCCdb and FCCmigex" if x["inFCCdb"] and x["inFCCmigex"] 
             else ("In FCCdb" if x["inFCCdb"] 
             else ("In FCCmigex" if x["inFCCmigex"] 
-            else "Not a FCC")),
+            else "Not an FCC")),
         axis=1
     )
 
@@ -198,7 +198,7 @@ def run_grouping_pipeline(analysis_df: pd.DataFrame, mapping_payload: Dict[str, 
 
     if CAS_COLUMN_INPUT in results_df.columns:
         cas_norm = results_df[CAS_COLUMN_INPUT].astype(str).str.strip()
-        results_df[FOOD_CONTACT_CHEMICAL_COLUMN] = cas_norm.map(lambda x: cas_fcc_lookup.get(x, "Not a FCC"))
+        results_df[FOOD_CONTACT_CHEMICAL_COLUMN] = cas_norm.map(lambda x: cas_fcc_lookup.get(x, "Not an FCC"))
         results_df[TIER_OF_FCCPRIO_COLUMN] = cas_norm.map(cas_tier_lookup).fillna("")
         results_df[HAZARD_COLUMN] = cas_norm.map(cas_hazard_lookup).fillna("")
 
@@ -207,7 +207,7 @@ def run_grouping_pipeline(analysis_df: pd.DataFrame, mapping_payload: Dict[str, 
         unresolved_mask = results_df[TIER_OF_FCCPRIO_COLUMN].astype(str).str.strip() == ""
 
         smiles_tier_series = canonical_smiles.map(smiles_tier_lookup).fillna("")
-        smiles_fcc_series = canonical_smiles.map(lambda x: smiles_fcc_lookup.get(x, "Not a FCC"))
+        smiles_fcc_series = canonical_smiles.map(lambda x: smiles_fcc_lookup.get(x, "Not an FCC"))
 
         results_df.loc[unresolved_mask, TIER_OF_FCCPRIO_COLUMN] = smiles_tier_series[unresolved_mask]
         results_df.loc[unresolved_mask, HAZARD_COLUMN] = canonical_smiles.map(smiles_hazard_lookup).fillna("")[unresolved_mask]
