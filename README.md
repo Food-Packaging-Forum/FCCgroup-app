@@ -231,7 +231,7 @@ If you use this tool in research outputs, please cite the accompanying paper:
 
 > Wiesinger, H., Parkinson, L. V., Geueke, B., Anguera Sempere, A., Boucher, J., Cabane, E.,
 > Scheringer, M., Muncke, M. (2026). Prioritizing and Grouping Food Contact Chemicals –
-> From chaos to clarity. *Environmental Science & Technology*.
+> From Chaos to Clarity. *Environmental Science & Technology*.
 > DOI: [10.1021/acs.est.5c15186](https://doi.org/10.1021/acs.est.5c15186)
 
 To cite the software itself:
