@@ -299,7 +299,7 @@ def _render_workflow_step_tabs() -> None:
 
 
 def display_workflow_explanation() -> None:
-    """Display detailed workflow explanation."""
+    """Display how to use explanation."""
 
     st.markdown(
         """
@@ -316,7 +316,7 @@ def display_workflow_explanation() -> None:
             "title": "Navigation and configuration",
             "color": "#255aa7",
             "content": [
-                "Click 📖 <strong>Detailed Workflow</strong> (top of the page) to open this page.",
+                "Click 📖 <strong>How to use</strong> (top of the page) to open this page.",
                 "Click 🔬 <strong>Analysis</strong> (top of this page) to return to the main analysis screen.",
             ] + [[
                 "In <strong>Grouping Configuration</strong> (shown at the top in developer mode), choose one or more methods:",
