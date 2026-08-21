@@ -1,0 +1,59 @@
+cff-version: 1.2.0
+title: FCCgroup app
+message: >-
+  If you use this software, please cite both the software itself and the
+  accompanying publication listed under `preferred-citation`.
+type: software
+authors:
+  - family-names: Anguera Sempere
+    given-names: Albert
+    affiliation: Food Packaging Forum Foundation
+  - family-names: Wiesinger
+    given-names: Helene
+    affiliation: Food Packaging Forum Foundation
+  - name: Food Packaging Forum Foundation
+    city: Zurich
+    country: CH
+    website: 'https://www.foodpackagingforum.org/'
+repository-code: 'https://github.com/Food-Packaging-Forum/FCCgroup-app'
+url: 'https://github.com/Food-Packaging-Forum/FCCgroup-app'
+abstract: >-
+  A Streamlit web application for screening chemicals against the Food Packaging
+  Forum's food contact chemical resources. It identifies whether each input
+  chemical is a known food contact chemical (FCCdb, FCCmigex), enriches it with
+  its FCCprio priority tier and hazard flags, and assigns structural priority
+  groups using the fccgroup Python package.
+keywords:
+  - food contact chemicals
+  - chemical grouping
+  - chemical prioritization
+  - read-across
+  - SMARTS
+  - cheminformatics
+  - streamlit
+license: CC-BY-SA-4.0
+preferred-citation:
+  type: article
+  title: >-
+    Prioritizing and Grouping Food Contact Chemicals - From chaos to clarity
+  authors:
+    - family-names: Wiesinger
+      given-names: H.
+    - family-names: Parkinson
+      given-names: L. V.
+    - family-names: Geueke
+      given-names: B.
+    - family-names: Anguera Sempere
+      given-names: A.
+    - family-names: Boucher
+      given-names: J.
+    - family-names: Cabane
+      given-names: E.
+    - family-names: Scheringer
+      given-names: M.
+    - family-names: Muncke
+      given-names: M.
+  journal: Environmental Science & Technology
+  year: 2026
+  doi: 10.1021/acs.est.5c15186
+  url: 'https://doi.org/10.1021/acs.est.5c15186'
