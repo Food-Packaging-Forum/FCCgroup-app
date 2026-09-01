@@ -31,6 +31,9 @@ def _has_non_empty_value(value: object) -> bool:
     if str(value).strip() == "":
         return False
 
+    if str(value).strip().lower() == "no data":
+        return False
+
     return True
 
 
