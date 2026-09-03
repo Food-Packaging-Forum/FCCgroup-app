@@ -120,7 +120,7 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
                 default=None,
             )
             if fcc_filter:
-                results_df = results_df[results_df[FOOD_CONTACT_CHEMICAL_COLUMN].str.contains(fcc_filter)]
+                results_df = results_df[results_df[FOOD_CONTACT_CHEMICAL_COLUMN].isin(fcc_filter)]
 
     with filter_col2:
         if TIER_OF_FCCPRIO_COLUMN in results_df.columns:
