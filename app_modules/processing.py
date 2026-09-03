@@ -8,18 +8,45 @@ from rdkit import Chem
 
 from fccgroup import ChemicalGrouper, ColumnMapping, GroupingConfig
 from fccgroup.constants import MULTIINDEX_IDENTIFIER_LABEL, MULTIINDEX_STRUCTURAL_LABEL
-from app_modules.config import CAS_COLUMN_INPUT, FOOD_CONTACT_CHEMICAL_COLUMN, GROUPS_OF_CONCERN_COLUMN, HAZARD_COLUMN, SMILES_COLUMN_INPUT, TIER_OF_FCCPRIO_COLUMN
+from app_modules.config import (
+    CANONICAL_SMILES_COLUMN,
+    CAS_COLUMN_INPUT,
+    FCC_LOOKUP_PATH,
+    FOOD_CONTACT_CHEMICAL_COLUMN,
+    GROUPS_OF_CONCERN_COLUMN,
+    HAZARD_COLUMN,
+    IN_FCCDB_COLUMN,
+    IN_FCCMIGEX_COLUMN,
+    NOT_AN_FCC_LABEL,
+    SMILES_COLUMN_INPUT,
+    TIER_OF_FCCPRIO_COLUMN,
+)
 
 
 @st.cache_data
-def load_smiles_lookup():
-    """Load preprocessed SMILES lookup table for fast enrichment."""
-    lookup_path = "assets/smiles_lookup.tsv"
+def load_fcc_lookup_df() -> Optional[pd.DataFrame]:
+    """Load the preprocessed FCC lookup table, or None when it hasn't been generated yet.
+
+    One row per (casId, canonical_SMILES) pair, covering the whole FCC universe:
+    entries without a chemical structure are kept with an empty canonical_SMILES
+    so a CAS-only chemical is still identifiable.
+    """
     try:
-        lookup_df = pd.read_csv(lookup_path, sep="\t")
+        return pd.read_csv(FCC_LOOKUP_PATH, sep="\t", dtype={CAS_COLUMN_INPUT: str})
     except FileNotFoundError:
         return None
-    return lookup_df
+
+
+@st.cache_data
+def load_fcc_cas_records() -> Dict[str, Dict[str, str]]:
+    """Index FCC records by CAS across the whole universe."""
+    return _build_fcc_records(load_fcc_lookup_df(), CAS_COLUMN_INPUT)
+
+
+@st.cache_data
+def load_fcc_smiles_records() -> Dict[str, Dict[str, str]]:
+    """Index FCC records by canonical SMILES, for structural matching."""
+    return _build_fcc_records(load_fcc_lookup_df(), CANONICAL_SMILES_COLUMN)
 
 
 @st.cache_resource
@@ -132,43 +159,110 @@ def _canonicalize_smiles(smiles: str) -> Optional[str]:
         return None
 
 
-def _build_fcc_lookups_from_smiles_lookup(lookup_df: pd.DataFrame) -> Tuple[Dict[str, str], Dict[str, bool], Dict[str, str], Dict[str, bool]]:
-    """Build CAS and SMILES lookup maps for FCC tier and FCC status."""
+def _first_non_empty(values) -> str:
+    """Return the first value that is neither NA nor blank, else an empty string."""
+    for value in values:
+        if pd.notna(value) and str(value).strip() != "":
+            return str(value).strip()
+    return ""
+
+
+def _fcc_status_label(in_fccdb: bool, in_fccmigex: bool) -> str:
+    """Name the source database(s) an entry belongs to.
+
+    A blank flag never counts as membership, so entries carrying neither flag
+    stay non-FCCs rather than being reported as present in both databases.
+    """
+    if in_fccdb and in_fccmigex:
+        return "In FCCdb and FCCmigex"
+    if in_fccdb:
+        return "In FCCdb"
+    if in_fccmigex:
+        return "In FCCmigex"
+    return NOT_AN_FCC_LABEL
+
+
+def _build_fcc_records(lookup_df: Optional[pd.DataFrame], key_column: str) -> Dict[str, Dict[str, str]]:
+    """Index one FCC record per identifier so status, tier and hazard stay in sync."""
+    if lookup_df is None or key_column not in lookup_df.columns:
+        return {}
+
     work_df = lookup_df.copy()
-    work_df["cas_norm"] = work_df[CAS_COLUMN_INPUT].astype(str).str.strip()
+    work_df["_key"] = work_df[key_column].astype(str).str.strip()
+    work_df = work_df[~work_df["_key"].str.lower().isin(["", "nan", "none"])]
 
-    if "canonical_SMILES" in work_df.columns:
-        work_df["smiles_norm"] = work_df["canonical_SMILES"].astype(str).str.strip()
-    elif "SMILES" in work_df.columns:
-        work_df["smiles_norm"] = work_df["SMILES"].astype(str).apply(_canonicalize_smiles).fillna("")
-    else:
-        work_df["smiles_norm"] = ""
+    for flag_column in (IN_FCCDB_COLUMN, IN_FCCMIGEX_COLUMN):
+        if flag_column in work_df.columns:
+            work_df[flag_column] = pd.to_numeric(work_df[flag_column], errors="coerce").fillna(0) > 0
+        else:
+            work_df[flag_column] = False
 
-    work_df["fcc_flag"] = work_df.apply(
-        lambda x: "In FCCdb and FCCmigex" if x["inFCCdb"] and x["inFCCmigex"] 
-            else ("In FCCdb" if x["inFCCdb"] 
-            else ("In FCCmigex" if x["inFCCmigex"] 
-            else "Not an FCC")),
-        axis=1
+    for value_column in (TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN):
+        if value_column not in work_df.columns:
+            work_df[value_column] = ""
+
+    # An identifier listed more than once is present in a database when any of its rows says so.
+    grouped = work_df.groupby("_key", sort=False).agg(
+        in_fccdb=(IN_FCCDB_COLUMN, "any"),
+        in_fccmigex=(IN_FCCMIGEX_COLUMN, "any"),
+        tier=(TIER_OF_FCCPRIO_COLUMN, _first_non_empty),
+        hazard=(HAZARD_COLUMN, _first_non_empty),
     )
 
-    def first_non_empty(values: pd.Series) -> str:
-        for value in values:
-            if pd.notna(value) and str(value).strip() != "":
-                return str(value).strip()
-        return ""
+    return {
+        key: {
+            "status": _fcc_status_label(bool(row.in_fccdb), bool(row.in_fccmigex)),
+            "tier": row.tier,
+            "hazard": row.hazard,
+        }
+        for key, row in zip(grouped.index, grouped.itertuples(index=False))
+    }
 
-    cas_df = work_df[work_df["cas_norm"] != ""]
-    cas_tier_lookup = cas_df.groupby("cas_norm")["Tier of FCCprio"].apply(first_non_empty).to_dict()
-    cas_hazard_lookup = cas_df.groupby("cas_norm")[HAZARD_COLUMN].apply(first_non_empty).to_dict()
-    cas_fcc_lookup = cas_df.groupby("cas_norm")["fcc_flag"].apply(first_non_empty).to_dict()
 
-    smiles_df = work_df[work_df["smiles_norm"] != ""]
-    smiles_tier_lookup = smiles_df.groupby("smiles_norm")["Tier of FCCprio"].apply(first_non_empty).to_dict()
-    smiles_hazard_lookup = smiles_df.groupby("smiles_norm")[HAZARD_COLUMN].apply(first_non_empty).to_dict()
-    smiles_fcc_lookup = smiles_df.groupby("smiles_norm")["fcc_flag"].apply(first_non_empty).to_dict()
+def _identifier_keys(results_df: pd.DataFrame, column_name: str, canonicalize: bool) -> List[Optional[str]]:
+    """Extract normalized lookup keys for one identifier column, or Nones when absent."""
+    if column_name not in results_df.columns:
+        return [None] * len(results_df)
 
-    return cas_tier_lookup, cas_fcc_lookup, cas_hazard_lookup, smiles_tier_lookup, smiles_fcc_lookup, smiles_hazard_lookup
+    values = results_df[column_name].astype(str).str.strip()
+    if canonicalize:
+        return [_canonicalize_smiles(value) if value else None for value in values]
+    return [value if value and value.lower() not in {"nan", "none"} else None for value in values]
+
+
+def _assign_fcc_columns(results_df: pd.DataFrame, cas_is_primary: bool) -> pd.DataFrame:
+    """Resolve FCC status, tier and hazard for every row.
+
+    The identifier the user actually supplied decides first: a CAS is a valid
+    identifier even for chemicals that have no structure, so it must not be
+    overruled by — or lost to — structural matching. The other identifier is
+    only consulted when the primary one finds nothing.
+    """
+    cas_records = load_fcc_cas_records()
+    smiles_records = load_fcc_smiles_records()
+
+    cas_keys = _identifier_keys(results_df, CAS_COLUMN_INPUT, canonicalize=False)
+    smiles_keys = _identifier_keys(results_df, SMILES_COLUMN_INPUT, canonicalize=True)
+
+    statuses: List[str] = []
+    tiers: List[str] = []
+    hazards: List[str] = []
+
+    for cas_key, smiles_key in zip(cas_keys, smiles_keys):
+        cas_record = cas_records.get(cas_key) if cas_key else None
+        smiles_record = smiles_records.get(smiles_key) if smiles_key else None
+
+        ordered = [cas_record, smiles_record] if cas_is_primary else [smiles_record, cas_record]
+        matches = [record for record in ordered if record]
+
+        statuses.append(matches[0]["status"] if matches else NOT_AN_FCC_LABEL)
+        tiers.append(_first_non_empty(record["tier"] for record in matches))
+        hazards.append(_first_non_empty(record["hazard"] for record in matches))
+
+    results_df[FOOD_CONTACT_CHEMICAL_COLUMN] = statuses
+    results_df[TIER_OF_FCCPRIO_COLUMN] = tiers
+    results_df[HAZARD_COLUMN] = hazards
+    return results_df
 
 
 def run_grouping_pipeline(analysis_df: pd.DataFrame, mapping_payload: Dict[str, object], grouping_methods: List[str]) -> pd.DataFrame:
@@ -189,31 +283,11 @@ def run_grouping_pipeline(analysis_df: pd.DataFrame, mapping_payload: Dict[str, 
     results_df = st.session_state.grouper_instance.group_chemicals(save=False)
     results_df = _flatten_results_columns(results_df)
 
-    smiles_lookup_df = load_smiles_lookup()
-    cas_tier_lookup, cas_fcc_lookup, cas_hazard_lookup, smiles_tier_lookup, smiles_fcc_lookup, smiles_hazard_lookup = _build_fcc_lookups_from_smiles_lookup(smiles_lookup_df)
-
-    results_df[FOOD_CONTACT_CHEMICAL_COLUMN] = ""
-    results_df[TIER_OF_FCCPRIO_COLUMN] = ""
-    results_df[HAZARD_COLUMN] = ""
-
-    if CAS_COLUMN_INPUT in results_df.columns:
-        cas_norm = results_df[CAS_COLUMN_INPUT].astype(str).str.strip()
-        results_df[FOOD_CONTACT_CHEMICAL_COLUMN] = cas_norm.map(lambda x: cas_fcc_lookup.get(x, "Not an FCC"))
-        results_df[TIER_OF_FCCPRIO_COLUMN] = cas_norm.map(cas_tier_lookup).fillna("")
-        results_df[HAZARD_COLUMN] = cas_norm.map(cas_hazard_lookup).fillna("")
-
-    if SMILES_COLUMN_INPUT in results_df.columns:
-        canonical_smiles = results_df[SMILES_COLUMN_INPUT].astype(str).apply(_canonicalize_smiles)
-        unresolved_mask = results_df[TIER_OF_FCCPRIO_COLUMN].astype(str).str.strip() == ""
-
-        smiles_tier_series = canonical_smiles.map(smiles_tier_lookup).fillna("")
-        smiles_fcc_series = canonical_smiles.map(lambda x: smiles_fcc_lookup.get(x, "Not an FCC"))
-
-        results_df.loc[unresolved_mask, TIER_OF_FCCPRIO_COLUMN] = smiles_tier_series[unresolved_mask]
-        results_df.loc[unresolved_mask, HAZARD_COLUMN] = canonical_smiles.map(smiles_hazard_lookup).fillna("")[unresolved_mask]
-
-        unresolved_fcc_mask = (results_df[FOOD_CONTACT_CHEMICAL_COLUMN].astype(str).str.strip() == "") | (
-            results_df[FOOD_CONTACT_CHEMICAL_COLUMN].astype(str).str.strip() == "No"
+    if not load_fcc_cas_records() and not load_fcc_smiles_records():
+        st.warning(
+            "⚠️ FCC lookup tables are missing. Run "
+            "`python scripts/preprocess_smiles_lookup.py` to generate them; "
+            "until then no chemical can be identified as an FCC."
         )
-        results_df.loc[unresolved_fcc_mask, FOOD_CONTACT_CHEMICAL_COLUMN] = smiles_fcc_series[unresolved_fcc_mask]
-    return results_df
+
+    return _assign_fcc_columns(results_df, cas_is_primary=bool(mapping_payload.get("cas")))

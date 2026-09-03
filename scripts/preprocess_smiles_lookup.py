@@ -1,9 +1,14 @@
 """
-SMILES Lookup Preprocessing Script
+FCC Lookup Preprocessing Script
 
-This script preprocesses the FCC database to create a SMILES-based lookup table.
-It expands CX SMILES and other enumerable SMILES formats into all possible 
-canonical SMILES representations, enabling fast matching during runtime.
+This script preprocesses the FCC database into the single lookup table the
+app uses to decide whether a chemical is a food contact chemical.
+
+The lookup is keyed by casId, since every FCC universe entry has one, but a
+CAS can carry zero, one, or (for enumerable CX SMILES) several canonical
+SMILES rows. Structure-less entries are kept with an empty canonical_SMILES
+so they remain identifiable by CAS, and CAS lookups no longer silently miss
+chemicals that lack a parseable structure.
 
 Run this script whenever the FCC database is updated:
     python scripts/preprocess_smiles_lookup.py
@@ -16,10 +21,6 @@ from rdkit import Chem
 from rdkit.Chem import rdMolEnumerator
 import threading
 from queue import Queue, Empty
-
-# Add src to path
-project_root = Path(__file__).parent.parent
-sys.path.append(str(project_root / "src"))
 from fccgroup.molecular.composition import align_bundle_coords
 
 
@@ -37,22 +38,22 @@ def canonicalize_smiles(smiles: str) -> str:
 def expand_smiles_to_molecules(smiles: str) -> list:
     """
     Expand a SMILES (including CX SMILES) into all possible canonical SMILES.
-    
+
     Handles:
     - Enhanced stereochemistry (CX SMILES feature)
     - Mixtures
     - Variable attachment points
     - Any other RDKit-enumerable features
-    
+
     Returns list of canonical SMILES strings.
     """
     canonical_smiles = []
-    
+
     def enumerate_with_timeout(mol, result_queue, timeout=300):
         """Helper function to enumerate molecules with timeout (5 minutes default)."""
         try:
             enumerated_mols = list(rdMolEnumerator.Enumerate(mol))
-            
+
             if len(enumerated_mols) > 1:
                 # Multiple molecules enumerated (mixtures, stereo, etc.)
                 for enumerated_mol in align_bundle_coords(enumerated_mols):
@@ -65,19 +66,19 @@ def expand_smiles_to_molecules(smiles: str) -> list:
             result_queue.put(None)  # Signal completion
         except Exception as e:
             result_queue.put(None)  # Signal completion with error
-    
+
     try:
         mol = Chem.MolFromSmiles(smiles)
         if mol is None:
             return []
-        
+
         # Use threading with timeout to handle long-running enumerations
         result_queue = Queue()
         thread = threading.Thread(target=enumerate_with_timeout, args=(mol, result_queue, 300))
         thread.daemon = True
         thread.start()
         thread.join(timeout=300)  # 5 minutes timeout
-        
+
         if thread.is_alive():
             # Timeout occurred - fall back to simple canonicalization
             print(f"    ⚠ Timeout during enumeration, using simple canonicalization")
@@ -96,99 +97,102 @@ def expand_smiles_to_molecules(smiles: str) -> list:
                     canonical_smiles.append(result)
                 except Empty:
                     break
-            
+
     except Exception as e:
         pass
-    
+
     return list(set(canonical_smiles))  # Remove duplicates
 
 
-def create_smiles_lookup(input_path: Path, output_path: Path):
+def create_fcc_lookup(df: pd.DataFrame, output_path: Path) -> pd.DataFrame:
     """
-    Create a SMILES lookup table from the FCC database.
-    
+    Create the single FCC lookup table used by the app.
+
+    One casId can carry zero structures (kept, so CAS-only chemicals are
+    still identifiable), one structure, or - rarely, for enumerable CX
+    SMILES - several canonical structures; each becomes its own row sharing
+    the same casId and metadata. There is deliberately no separate
+    CAS-keyed and SMILES-keyed file: splitting them previously meant the
+    CAS table only covered chemicals that also had a parseable structure,
+    silently losing every structure-less entry from CAS lookups.
+
     Args:
-        input_path: Path to input Excel file (FCC database)
-        output_path: Path to output TSV file (SMILES lookup table)
+        df: The FCC database as loaded from the Excel workbook.
+        output_path: Path to output TSV file (FCC lookup table).
     """
-    print(f"\n{'='*70}")
-    print("SMILES Lookup Preprocessing")
-    print(f"{'='*70}\n")
-    
-    # Load the FCC database
-    print(f"Loading FCC database from: {input_path}")
-    df = pd.read_excel(input_path)
-    print(f"  ✓ Loaded {len(df)} entries\n")
-    
-    # Check for SMILES column
+    if 'casId' not in df.columns:
+        raise ValueError("Input file must contain a 'casId' column")
     if 'SMILES' not in df.columns:
         raise ValueError("Input file must contain a 'SMILES' column")
-    
-    # Prepare lookup records
+
     print("Expanding SMILES to canonical forms...")
     print(f"Processing {len(df)} entries (this may take a few minutes)...")
-    print("⏱️  Note: Individual molecules timeout after 5 minutes and fall back to simple canonicalization\n")
-    
+    print("⏱️  Note: Individual molecules timeout after 5 minutes and fall back to simple canonicalization")
+    print()
+
+    work_df = df.copy()
+    work_df['casId'] = work_df['casId'].astype(str).str.strip()
+    work_df = work_df[~work_df['casId'].str.lower().isin(['', 'nan', 'none'])]
+
+    metadata_columns = [col for col in ('inFCCdb', 'inFCCmigex', 'Hazard', 'Tier of FCCprio') if col in work_df.columns]
+
     lookup_records = []
+    without_structure = 0
     expanded_count = 0
     total_expansions = 0
     failed_count = 0
-    timeout_count = 0
-    
-    for idx, row in df.iterrows():
+
+    for idx, row in work_df.iterrows():
         if (idx + 1) % 100 == 0:
-            print(f"  Progress: {idx + 1}/{len(df)} ({((idx + 1)/len(df)*100):.1f}%) | Timeouts: {timeout_count}")
-        
+            print(f"  Progress: {idx + 1}/{len(df)} ({((idx + 1)/len(df)*100):.1f}%)")
+
+        metadata = {col: row[col] for col in metadata_columns}
         smiles = row.get('SMILES', '')
+
         if not smiles or pd.isna(smiles):
+            without_structure += 1
+            lookup_records.append({'casId': row['casId'], 'canonical_SMILES': '', **metadata})
             continue
-        
-        # Expand the SMILES (handles both CX and regular SMILES)
+
         canonical_forms = expand_smiles_to_molecules(smiles)
-        
         if len(canonical_forms) == 0:
             failed_count += 1
+            lookup_records.append({'casId': row['casId'], 'canonical_SMILES': '', **metadata})
             continue
-        
+
         if len(canonical_forms) > 1:
             expanded_count += 1
             total_expansions += len(canonical_forms)
-        
-        # Create a record for each canonical form
+
         for canonical in canonical_forms:
-            lookup_record = row.to_dict()
-            lookup_record['canonical_SMILES'] = canonical
-            lookup_record['original_SMILES'] = smiles
-            lookup_records.append(lookup_record)
-    
-    # Create lookup DataFrame
+            lookup_records.append({'casId': row['casId'], 'canonical_SMILES': canonical, **metadata})
+
     lookup_df = pd.DataFrame(lookup_records)
-    
-    # Remove duplicates (keep first occurrence)
     initial_size = len(lookup_df)
-    lookup_df = lookup_df.drop_duplicates(subset=['canonical_SMILES'], keep='first')
+    lookup_df = lookup_df.drop_duplicates(keep='first')
     duplicates_removed = initial_size - len(lookup_df)
-    
-    print(f"\n{'='*70}")
+
+    print()
+    print(f"{'='*70}")
     print("Processing Summary:")
     print(f"{'='*70}")
-    print(f"  • Original entries:                {len(df):,}")
-    print(f"  • Failed to parse:                 {failed_count:,}")
+    print(f"  • Universe entries:                {len(df):,}")
+    print(f"  • Entries without a structure:     {without_structure:,} (kept)")
+    print(f"  • Failed to parse:                 {failed_count:,} (kept, structure-less)")
     print(f"  • Expanded CX/enumerable SMILES:   {expanded_count:,}")
     print(f"  • Total canonical forms created:   {total_expansions:,}")
-    print(f"  • Unique canonical SMILES:         {len(lookup_df):,}")
-    print(f"  • Duplicates removed:              {duplicates_removed:,}")
-    print(f"{'='*70}\n")
-    
-    # Save to TSV (tab-separated values format)
-    print(f"Saving lookup table to: {output_path}")
+    print(f"  • Unique CAS in lookup:            {lookup_df['casId'].nunique():,}")
+    print(f"  • Lookup rows:                     {len(lookup_df):,}")
+    print(f"  • Exact duplicate rows removed:    {duplicates_removed:,}")
+    print(f"{'='*70}")
+    print()
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
     lookup_df.to_csv(output_path, index=False, sep='\t')
-    
-    # Report file size
     file_size_mb = output_path.stat().st_size / (1024 * 1024)
-    print(f"  ✓ Saved successfully ({file_size_mb:.2f} MB)\n")
-    
+    print(f"  ✓ Saved to {output_path} ({file_size_mb:.2f} MB)")
+    print()
+
     return lookup_df
 
 
@@ -197,39 +201,49 @@ def main():
     # Define paths relative to project root
     project_root = Path(__file__).parent.parent
     assets_path = project_root / "assets"
-    
+
     # Input: FCC database (the one used in app.py)
     input_path = assets_path / "FCCuniverse.xlsx"
-    
-    # Output: SMILES lookup table
-    output_path = assets_path / "smiles_lookup.tsv"
-    
+
+    # Output: single lookup table covering the whole FCC universe
+    output_path = assets_path / "fcc_lookup.tsv"
+
     # Check if input exists
     if not input_path.exists():
         print(f"❌ Error: Input file not found at {input_path}")
-        print("\nPlease ensure the FCC database is available at:")
+        print("Please ensure the FCC database is available at:")
         print(f"  {input_path}")
         sys.exit(1)
-    
+
     # Create lookup table
     try:
-        lookup_df = create_smiles_lookup(input_path, output_path)
-        print("✅ Preprocessing completed successfully!\n")
-        
+        print()
+        print(f"{'='*70}")
+        print("FCC Lookup Preprocessing")
+        print(f"{'='*70}")
+        print()
+
+        print(f"Loading FCC database from: {input_path}")
+        df = pd.read_excel(input_path)
+        print(f"  ✓ Loaded {len(df)} entries")
+        print()
+
+        lookup_df = create_fcc_lookup(df, output_path)
+        print("✅ Preprocessing completed successfully!")
+        print()
+
         # Display sample
         print("Sample of lookup table:")
-        sample_cols = ['canonical_SMILES', 'original_SMILES']
-        if 'casId' in lookup_df.columns:
-            sample_cols.append('casId')
+        sample_cols = [col for col in ['casId', 'canonical_SMILES', 'inFCCdb', 'inFCCmigex'] if col in lookup_df.columns]
         print(lookup_df[sample_cols].head(10))
-        print("\n")
+        print()
         print("📋 Next steps:")
         print("  1. The lookup table is saved at:")
         print(f"     {output_path}")
-        print("  2. The app will automatically load it when using SMILES input mode")
-        
+        print("  2. The app loads it automatically: CAS first, structure as fallback")
+
     except Exception as e:
-        print(f"\n❌ Error during preprocessing: {e}")
+        print(f"❌ Error during preprocessing: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

@@ -23,6 +23,16 @@ HAZARD_COLUMN = "Hazard"
 TIER_OF_FCCPRIO_COLUMN = "Tier of FCCprio"
 GROUPS_OF_CONCERN_COLUMN = "Priority groups"
 
+# FCC reference data: the universe workbook and the single lookup table derived from it.
+FCC_UNIVERSE_PATH = "assets/FCCuniverse.xlsx"
+FCC_LOOKUP_PATH = "assets/fcc_lookup.tsv"
+
+IN_FCCDB_COLUMN = "inFCCdb"
+IN_FCCMIGEX_COLUMN = "inFCCmigex"
+CANONICAL_SMILES_COLUMN = "canonical_SMILES"
+
+NOT_AN_FCC_LABEL = "Not an FCC"
+
 DISPLAY_RESULT_COLUMNS = [
     CAS_COLUMN,
     SMILES_COLUMN,

@@ -64,25 +64,30 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
         unsafe_allow_html=True,
     )
 
-    total_count = len(results_df)
+    # Metrics are computed on identifiers deduplicated by CAS/SMILES so a chemical
+    # repeated across several rows is only counted once; the table below keeps every row.
+    identifier_columns = [col for col in (CAS_COLUMN, SMILES_COLUMN) if col in results_df.columns]
+    metrics_df = results_df.drop_duplicates(subset=identifier_columns) if identifier_columns else results_df
+
+    total_count = len(metrics_df)
     metrics = [("Total Chemicals", total_count, "🧪")]
 
-    if SMILES_COLUMN in results_df.columns:
-        valid_smiles_count = int(results_df[SMILES_COLUMN].apply(_has_non_empty_value).sum())
+    if SMILES_COLUMN in metrics_df.columns:
+        valid_smiles_count = int(metrics_df[SMILES_COLUMN].apply(_has_non_empty_value).sum())
         metrics.append(("Valid SMILES", f"{valid_smiles_count}/{total_count}", "🧬"))
     else:
         metrics.append(("Valid SMILES", "N/A", "🧬"))
 
-    if FOOD_CONTACT_CHEMICAL_COLUMN in results_df.columns:
-        food_contact_count = int(results_df[FOOD_CONTACT_CHEMICAL_COLUMN].apply(lambda x: x!="Not an FCC").sum())
+    if FOOD_CONTACT_CHEMICAL_COLUMN in metrics_df.columns:
+        food_contact_count = int(metrics_df[FOOD_CONTACT_CHEMICAL_COLUMN].apply(lambda x: x!="Not an FCC").sum())
         metrics.append(("Food Contact", f"{food_contact_count}/{total_count}", "🗄️"))
 
-    if TIER_OF_FCCPRIO_COLUMN in results_df.columns:
-        fcc_tier_count = int(results_df[TIER_OF_FCCPRIO_COLUMN].apply(_has_non_empty_value).sum())
+    if TIER_OF_FCCPRIO_COLUMN in metrics_df.columns:
+        fcc_tier_count = int(metrics_df[TIER_OF_FCCPRIO_COLUMN].apply(_has_non_empty_value).sum())
         metrics.append(("FCCprio Tier", f"{fcc_tier_count}/{total_count}", "🎯"))
 
-    if GROUPS_OF_CONCERN_COLUMN in results_df.columns:
-        groups_count = int(results_df[GROUPS_OF_CONCERN_COLUMN].apply(_has_non_empty_value).sum())
+    if GROUPS_OF_CONCERN_COLUMN in metrics_df.columns:
+        groups_count = int(metrics_df[GROUPS_OF_CONCERN_COLUMN].apply(_has_non_empty_value).sum())
         metrics.append(("With Priority Groups", f"{groups_count}/{total_count}", "🔬"))
     print(results_df.columns)
     results_df[[TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUPS_OF_CONCERN_COLUMN]] = results_df[[TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUPS_OF_CONCERN_COLUMN]].replace("", "NA")
