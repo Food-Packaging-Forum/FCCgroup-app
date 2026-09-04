@@ -232,58 +232,6 @@ GLOBAL_CSS = """
         background-clip: text;
     }
 
-    /* ======================================================
-       Dark-mode overrides
-       Uses both [data-theme="dark"] (for Streamlit's own toggle)
-       and @media (prefers-color-scheme: dark) (for system preference)
-       to ensure maximum compatibility across Streamlit versions.
-       ====================================================== */
-
-    [data-theme="dark"] .subtitle { color: #c9d5e2; }
-    @media (prefers-color-scheme: dark) { .subtitle { color: #c9d5e2; } }
-
-    [data-theme="dark"] .metric-card {
-        background: color-mix(in srgb, var(--secondary-background-color) 100%, white 18%);
-        border-color: rgba(255, 255, 255, 0.12);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    }
-    @media (prefers-color-scheme: dark) {
-        .metric-card {
-            background: color-mix(in srgb, var(--secondary-background-color) 100%, white 18%);
-            border-color: rgba(255, 255, 255, 0.12);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-        }
-    }
-
-    [data-theme="dark"] .metric-card:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
-    @media (prefers-color-scheme: dark) { .metric-card:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05); } }
-
-    [data-theme="dark"] .metric-card-label { color: #9ca3af; }
-    @media (prefers-color-scheme: dark) { .metric-card-label { color: #9ca3af; } }
-
-    [data-theme="dark"] .streamlit-expanderHeader { background-color: rgba(255, 255, 255, 0.05); }
-    @media (prefers-color-scheme: dark) { .streamlit-expanderHeader { background-color: rgba(255, 255, 255, 0.05); } }
-
-    [data-theme="dark"] hr {
-        background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
-    }
-    @media (prefers-color-scheme: dark) {
-        hr {
-            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
-        }
-    }
-
-    [data-theme="dark"] .section-gradient-divider {
-        background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.18) 100%);
-    }
-    @media (prefers-color-scheme: dark) {
-        .section-gradient-divider {
-            background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.18) 100%);
-        }
-    }
-
-    /* Download buttons need explicit transition — they render as .stDownloadButton, not .stButton,
-       so the global .stButton > button transition rule does not reach them. */
     .st-key-download_csv_button button,
     .st-key-download_excel_button button {
         border-radius: 10px;
@@ -291,12 +239,10 @@ GLOBAL_CSS = """
         transition: all 0.3s ease !important;
     }
 
-    /* wf_tab buttons: ensure 0.3s transition wins over Streamlit's built-in shorter default */
     [class*="st-key-wf_tab_"] button {
         transition: all 0.3s ease !important;
     }
 
-    /* Clear and download buttons — hover: zoom + shadow, no background change */
     .st-key-new_analysis_manual_button button:hover,
     .st-key-new_analysis_upload_button button:hover,
     .st-key-clear_data_results_button button:hover,
@@ -307,11 +253,9 @@ GLOBAL_CSS = """
         background: var(--background-color);
     }
 
-    /* Hide sidebar and its toggle completely */
     section[data-testid="stSidebar"] { display: none !important; }
     [data-testid="collapsedControl"] { display: none !important; }
 
-    /* Sample data button — matches main workflow button style */
     .st-key-sample_data_button button {
         background: var(--fpf-gradient);
         color: #ffffff;
@@ -336,7 +280,6 @@ GLOBAL_CSS = """
         outline-offset: 1px;
     }
 
-    /* Grouping config panel */
     .st-key-grouping_config_panel {
         background: rgba(37, 90, 167, 0.06);
         border: 1px solid var(--fpf-border);
@@ -345,24 +288,100 @@ GLOBAL_CSS = """
         margin: 0 0 1.25rem 0;
     }
 
-    [data-theme="dark"] .st-key-grouping_config_panel {
-        background: rgba(37, 90, 167, 0.1);
-        border-color: rgba(37, 90, 167, 0.3);
+    /* Full-width blue footer band — breaks out of the centered container
+       using the same 100vw technique as .section-gradient-divider */
+    .footer-band {
+        position: relative;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100vw;
+        background: var(--fpf-blue);
+        margin: 4rem 0 0 0;
+        padding: 2.5rem 1.5rem 2rem 1.5rem;
+        box-sizing: border-box;
     }
 
-    /* Page footer */
+    .footer-band-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    /* Feedback widget */
+    .feedback-widget {
+        text-align: center;
+    }
+
+    .feedback-widget-title {
+        font-size: 1rem;
+        font-weight: 700;
+        font-family: 'Poppins', 'Segoe UI', sans-serif;
+        color: #ffffff;
+        margin-bottom: 1rem;
+    }
+
+    .feedback-btn-row {
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .feedback-btn,
+    .feedback-btn:link,
+    .feedback-btn:visited {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.1rem;
+        background: rgba(255, 255, 255, 0.12);
+        color: #ffffff !important;
+        border: 2px solid rgba(255, 255, 255, 0.7);
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        font-family: 'Open Sans', 'Segoe UI', sans-serif;
+        text-decoration: none !important;
+        transition: all 0.25s ease;
+        cursor: pointer;
+    }
+
+    .feedback-btn span {
+        color: #ffffff !important;
+    }
+
+    .feedback-btn:hover,
+    .feedback-btn:hover span {
+        color: var(--fpf-dark-blue) !important;
+    }
+
+    .feedback-btn:hover {
+        transform: translateY(-2px);
+        background: #ffffff;
+        border-color: #ffffff;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Page footer (license row inside the blue band) */
     .page-footer {
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 2rem;
-        padding: 0.5rem 0 1rem 0;
         flex-wrap: wrap;
     }
 
     .page-footer img.fpf-logo {
         height: 36px;
         width: auto;
+        background: #ffffff;
+        padding: 0.4rem 0.6rem;
+        border-radius: 8px;
+        box-sizing: content-box;
     }
 
     .page-footer-license {
@@ -373,7 +392,7 @@ GLOBAL_CSS = """
 
     .page-footer-text {
         font-size: 0.85rem;
-        color: var(--fpf-muted);
+        color: #ffffff !important;
     }
 
     .workflow-section-boxes {
@@ -475,11 +494,6 @@ GLOBAL_CSS = """
         border-radius: 12px;
         padding: 0.75rem 1.25rem 0.5rem;
         margin: 0 0 1.25rem 0;
-    }
-
-    [data-theme="dark"] .st-key-grouping_config_panel {
-        background: rgba(37, 90, 167, 0.1);
-        border-color: rgba(37, 90, 167, 0.3);
     }
 
     /* Page footer */
@@ -617,26 +631,53 @@ def render_page_header(active_page: str = "main") -> tuple[bool, bool]:
         with col_a:
             go_to_analysis = st.button("🔬 Analysis", key="nav_analysis_button", use_container_width=True)
         with col_w:
-            go_to_workflow = st.button("📖 Detailed Workflow", key="nav_workflow_button", use_container_width=True)
+            go_to_workflow = st.button("📖 How to use", key="nav_workflow_button", use_container_width=True)
 
     return go_to_workflow, go_to_analysis
 
 
+_ISSUES_BASE_URL = "https://github.com/Food-Packaging-Forum/FCCgroup-app/issues/new"
+_FEEDBACK_OPTIONS = [
+    ("🐛", "Report a bug", f"{_ISSUES_BASE_URL}?template=bug_report.md"),
+    ("💡", "Request a feature", f"{_ISSUES_BASE_URL}?template=feature_request.md"),
+    ("💬", "Other feedback", _ISSUES_BASE_URL),
+]
+
+
+def _feedback_html() -> str:
+    """Build the feedback buttons block linking to GitHub issue templates."""
+    buttons_html = "".join(
+        f'<a href="{url}" target="_blank" rel="noopener noreferrer" class="feedback-btn">'
+        f'<span>{icon}</span><span>{label}</span></a>'
+        for icon, label, url in _FEEDBACK_OPTIONS
+    )
+    return (
+        '<div class="feedback-widget">'
+        '<div class="feedback-widget-title">Have feedback? Help us improve FCCgroup</div>'
+        f'<div class="feedback-btn-row">{buttons_html}</div>'
+        '</div>'
+    )
+
+
 def render_footer() -> None:
-    """Render horizontal footer with logo and license."""
+    """Render full-width blue footer band with feedback buttons, logo, and license."""
     fpf_logo_path = Path(__file__).resolve().parents[1] / "assets" / "fpf_logo_RGB_vector_SVG.svg"
     fpf_logo_src = _svg_as_data_uri(fpf_logo_path)
 
-    st.markdown("---")
     st.markdown(
         f"""
-        <div class="page-footer">
-            <img src="{fpf_logo_src}" class="fpf-logo" alt="Food Packaging Forum">
-            <div class="page-footer-license">
-                <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" style="line-height:0;">
-                    <img src="https://licensebuttons.net/l/by/4.0/88x31.png" alt="CC BY 4.0">
-                </a>
-                <span class="page-footer-text">© 2026 Food Packaging Forum — CC BY 4.0</span>
+        <div class="footer-band">
+            <div class="footer-band-inner">
+                {_feedback_html()}
+                <div class="page-footer">
+                    <img src="{fpf_logo_src}" class="fpf-logo" alt="Food Packaging Forum">
+                    <div class="page-footer-license">
+                        <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" style="line-height:0;">
+                            <img src="https://licensebuttons.net/l/by-sa/4.0/88x31.png" alt="CC BY-SA 4.0">
+                        </a>
+                        <span class="page-footer-text">© 2026 Food Packaging Forum — CC BY-SA 4.0</span>
+                    </div>
+                </div>
             </div>
         </div>
         """,

@@ -76,6 +76,7 @@ _TAB_CONTENT = {
         ],
         "links": [
             {"label": "FCCprio Data (Zenodo)", "icon": "fas fa-database", "url": "https://doi.org/10.5281/zenodo.14881617"},
+            {"label": "FCCprio Publication", "icon": "fas fa-file-invoice", "url": "https://doi.org/10.1021/acs.est.5c15186"},
         ],
     },
     "struct_grp": {
@@ -110,6 +111,7 @@ _TAB_CONTENT = {
         ],
         "links": [
             {"label": "FCCgroup on PyPI", "icon": "fas fa-cube", "url": "https://pypi.org/project/fccgroup/"},
+            {"label": "FCCgroup Publication", "icon": "fas fa-file-invoice", "url": "https://doi.org/10.1021/acs.est.5c15186"},
         ],
     },
 }
@@ -297,7 +299,7 @@ def _render_workflow_step_tabs() -> None:
 
 
 def display_workflow_explanation() -> None:
-    """Display detailed workflow explanation."""
+    """Display how to use explanation."""
 
     st.markdown(
         """
@@ -314,7 +316,7 @@ def display_workflow_explanation() -> None:
             "title": "Navigation and configuration",
             "color": "#255aa7",
             "content": [
-                "Click 📖 <strong>Detailed Workflow</strong> (top of the page) to open this page.",
+                "Click 📖 <strong>How to use</strong> (top of the page) to open this page.",
                 "Click 🔬 <strong>Analysis</strong> (top of this page) to return to the main analysis screen.",
             ] + [[
                 "In <strong>Grouping Configuration</strong> (shown at the top in developer mode), choose one or more methods:",

@@ -130,30 +130,30 @@ def main() -> None:
     """Main application orchestration."""
     apply_global_styles()
     initialize_session_state()
-    go_to_workflow, go_to_analysis = render_page_header(st.session_state.active_page)
+    
+    with st.container():
+        go_to_workflow, go_to_analysis = render_page_header(st.session_state.active_page)
 
-    if go_to_workflow:
-        st.session_state.active_page = "workflow"
-        st.rerun()
-    if go_to_analysis:
-        st.session_state.active_page = "main"
-        st.rerun()
+        if go_to_workflow:
+            st.session_state.active_page = "workflow"
+            st.rerun()
+        if go_to_analysis:
+            st.session_state.active_page = "main"
+            st.rerun()
 
-    if st.session_state.active_page == "workflow":
-        display_workflow_explanation()
-        render_footer()
-        return
+        if st.session_state.active_page == "workflow":
+            display_workflow_explanation()
+        else:
+            _render_grouping_config()
 
-    _render_grouping_config()
+            analysis_df, input_summary_ready, _, _, _ = render_input_section()
 
-    analysis_df, input_summary_ready, _, _, _ = render_input_section()
+            process_button = _render_process_section(analysis_df=analysis_df, input_summary_ready=input_summary_ready)
+            if process_button:
+                _process_analysis(analysis_df)
 
-    process_button = _render_process_section(analysis_df=analysis_df, input_summary_ready=input_summary_ready)
-    if process_button:
-        _process_analysis(analysis_df)
-
-    if st.session_state.results_df is not None:
-        render_results_section(st.session_state.results_df)
+            if st.session_state.results_df is not None:
+                render_results_section(st.session_state.results_df)
 
     render_footer()
 
