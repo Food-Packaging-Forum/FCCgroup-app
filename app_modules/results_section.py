@@ -89,8 +89,12 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
     if GROUPS_OF_CONCERN_COLUMN in metrics_df.columns:
         groups_count = int(metrics_df[GROUPS_OF_CONCERN_COLUMN].apply(_has_non_empty_value).sum())
         metrics.append(("With Priority Groups", f"{groups_count}/{total_count}", "🔬"))
-    print(results_df.columns)
-    results_df[[TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUPS_OF_CONCERN_COLUMN]] = results_df[[TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUPS_OF_CONCERN_COLUMN]].replace("", "NA")
+    na_fill_columns = [
+        col for col in (TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUPS_OF_CONCERN_COLUMN)
+        if col in results_df.columns
+    ]
+    if na_fill_columns:
+        results_df[na_fill_columns] = results_df[na_fill_columns].replace("", "NA")
 
     unfiltered_results_df = results_df.copy()
 
