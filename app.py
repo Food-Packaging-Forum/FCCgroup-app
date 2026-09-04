@@ -83,7 +83,7 @@ def _process_analysis(analysis_df) -> None:
         status_text.text("🔄 Step 3/3: Finalizing results...")
         progress_bar.progress(100)
 
-        st.success(f"✅ Successfully analyzed {len(st.session_state.results_df)} chemicals!")
+        st.success(f"✅ Successfully analyzed {len(st.session_state.results_df)} rows!")
         if st.session_state.is_admin:
             st.balloons()
     except Exception as error:
