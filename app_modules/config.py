@@ -33,6 +33,9 @@ CANONICAL_SMILES_COLUMN = "canonical_SMILES"
 
 NOT_AN_FCC_LABEL = "Not an FCC"
 
+# Upper bound on rows handed to the grouper; larger inputs are truncated.
+MAX_ANALYSIS_ROWS = 1000
+
 DISPLAY_RESULT_COLUMNS = [
     CAS_COLUMN,
     SMILES_COLUMN,
