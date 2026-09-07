@@ -153,7 +153,7 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
 
     with filter_col4:
         if GROUPS_OF_CONCERN_COLUMN in results_df.columns:
-            groups_concern = results_df[GROUPS_OF_CONCERN_COLUMN].str.split(",").explode().unique()
+            groups_concern = results_df[GROUPS_OF_CONCERN_COLUMN].str.split(", ").explode().unique()
 
             group_col1, group_col2 = st.columns([2, 1])
             with group_col1:

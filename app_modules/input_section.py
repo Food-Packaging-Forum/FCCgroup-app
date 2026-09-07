@@ -5,7 +5,7 @@ from typing import List, Tuple
 import pandas as pd
 import streamlit as st
 
-from app_modules.config import CAS_COLUMN_INPUT, MAPPING_FIELD_LABELS, SMILES_COLUMN_INPUT, build_default_mapping_payload
+from app_modules.config import CAS_COLUMN_INPUT, MAPPING_FIELD_LABELS, MAX_ANALYSIS_ROWS, SMILES_COLUMN_INPUT, build_default_mapping_payload
 from app_modules.styles import apply_mode_button_styles
 
 
@@ -168,6 +168,22 @@ def _render_file_upload() -> None:
         st.error(f"❌ Error reading file. The supported files are as of now: Excel (.xlsx, .xls) and CSV (.csv). Details: {str(error)}.")
 
 
+def _render_warning(title: str, body_html: str) -> None:
+    """Render a yellow-bordered notice matching the Input Summary card."""
+    _C = "#f4ad20"
+    st.markdown(
+        f"<div style='background:linear-gradient(135deg,{_C}12 0%,{_C}04 100%);"
+        f"border-left:5px solid {_C};border-radius:12px;padding:1.25rem;margin:0.5rem 0;"
+        f"font-size:0.95rem;line-height:1.6;'>"
+        f"<p style='font-weight:700;margin:0 0 0.4rem 0;font-size:1rem;"
+        f"font-family:Poppins,sans-serif;letter-spacing:0.02em;'>"
+        f"⚠️ {title}</p>"
+        f"{body_html}"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+
 def _render_column_mapping(analysis_df: pd.DataFrame) -> None:
     """Render mapping controls for uploaded data."""
     default_mapping = build_default_mapping_payload(st.session_state.input_type)
@@ -242,7 +258,7 @@ def render_input_section() -> Tuple[pd.DataFrame, bool, int, str, List[str]]:
         unsafe_allow_html=True,
     )
 
-    st.info("⚠️ For optimization reasons, the number of entries is limited to **1,000**. Larger datasets may impact performance.")
+    st.info(f"⚠️ For optimization reasons, the number of entries is limited to **{MAX_ANALYSIS_ROWS:,}**. Larger datasets may impact performance.")
 
     apply_mode_button_styles(st.session_state.input_mode == "Manual Entry")
 
@@ -286,6 +302,7 @@ def render_input_section() -> Tuple[pd.DataFrame, bool, int, str, List[str]]:
     input_summary_count = 0
     input_summary_label = "entries"
     input_summary_preview: List[str] = []
+    duplicate_identifier_count = 0
 
     if st.session_state.input_mode == "Manual Entry":
         if manual_input_values:
@@ -304,6 +321,21 @@ def render_input_section() -> Tuple[pd.DataFrame, bool, int, str, List[str]]:
         mapped_columns = list(dict.fromkeys(mapped_columns))
         if mapped_columns:
             analysis_df = analysis_df[mapped_columns]
+
+            # Manual entry dedupes its input; an uploaded file does not, so repeated
+            # identifiers reach the results table and make it disagree with the
+            # Summary Dashboard, which counts each chemical once.
+            identifier_columns = [
+                st.session_state.mapping_payload.get(field)
+                for field in ("cas", "smiles")
+            ]
+            identifier_columns = [col for col in identifier_columns if col in analysis_df.columns]
+            if identifier_columns:
+                # Count only within the rows that will actually be analyzed, so this
+                # notice stays consistent with the row-limit notice below.
+                analyzed_slice = analysis_df.iloc[:MAX_ANALYSIS_ROWS]
+                duplicate_identifier_count = int(analyzed_slice.duplicated(subset=identifier_columns).sum())
+
             preview_source = mapped_columns[0]
             input_summary_ready = True
             input_summary_count = len(analysis_df)
@@ -324,6 +356,32 @@ def render_input_section() -> Tuple[pd.DataFrame, bool, int, str, List[str]]:
             f"<strong>Preview:</strong> {preview_text}"
             f"</div>",
             unsafe_allow_html=True,
+        )
+
+    if duplicate_identifier_count:
+        analyzed_count = min(input_summary_count, MAX_ANALYSIS_ROWS)
+        unique_count = analyzed_count - duplicate_identifier_count
+        _render_warning(
+            "Duplicate identifiers detected",
+            f"<strong>{duplicate_identifier_count:,}</strong> of the "
+            f"<strong>{analyzed_count:,}</strong> rows to be analyzed repeat an identifier that "
+            "already appears earlier in the file.<br>"
+            f"Every row is kept, so the results table will show all "
+            f"<strong>{analyzed_count:,}</strong> rows while the Summary Dashboard counts "
+            f"<strong>{unique_count:,}</strong> unique chemical(s). Remove the duplicates from your "
+            "file if you want the two to match.",
+        )
+
+    # The grouper only ever receives the first MAX_ANALYSIS_ROWS rows, so say so
+    # before Start Analysis is clicked rather than silently dropping the rest.
+    if input_summary_ready and input_summary_count > MAX_ANALYSIS_ROWS:
+        excluded_count = input_summary_count - MAX_ANALYSIS_ROWS
+        _render_warning(
+            "Row limit exceeded",
+            f"Only the first <strong>{MAX_ANALYSIS_ROWS:,}</strong> of your "
+            f"<strong>{input_summary_count:,}</strong> rows will be analyzed.<br>"
+            f"The remaining <strong>{excluded_count:,}</strong> row(s) are excluded from both the "
+            "results table and the export — split the file into smaller batches to process them.",
         )
 
     return analysis_df, input_summary_ready, input_summary_count, input_summary_label, input_summary_preview

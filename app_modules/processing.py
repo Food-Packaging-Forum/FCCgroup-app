@@ -11,12 +11,14 @@ from fccgroup.constants import MULTIINDEX_IDENTIFIER_LABEL, MULTIINDEX_STRUCTURA
 from app_modules.config import (
     CANONICAL_SMILES_COLUMN,
     CAS_COLUMN_INPUT,
+    CHEMICAL_NAMES_COLUMN_INPUT,
     FCC_LOOKUP_PATH,
     FOOD_CONTACT_CHEMICAL_COLUMN,
     GROUPS_OF_CONCERN_COLUMN,
     HAZARD_COLUMN,
     IN_FCCDB_COLUMN,
     IN_FCCMIGEX_COLUMN,
+    MAX_ANALYSIS_ROWS,
     NOT_AN_FCC_LABEL,
     SMILES_COLUMN_INPUT,
     TIER_OF_FCCPRIO_COLUMN,
@@ -230,6 +232,49 @@ def _identifier_keys(results_df: pd.DataFrame, column_name: str, canonicalize: b
     return [value if value and value.lower() not in {"nan", "none"} else None for value in values]
 
 
+def _combine_row_names(values) -> str:
+    """Join one row's distinct, non-empty names in the order their columns were mapped."""
+    names: List[str] = []
+    for value in values:
+        if pd.isna(value):
+            continue
+        text = str(value).strip()
+        if text == "" or text.lower() in {"nan", "none", "no data"}:
+            continue
+        if text not in names:
+            names.append(text)
+    return "; ".join(names)
+
+
+def _assign_chemical_names(results_df: pd.DataFrame, name_columns: List[str]) -> pd.DataFrame:
+    """Surface the name columns mapped from an uploaded file as chemical names.
+
+    fccgroup only ever fills `column_names` from CompTox, and it leaves mapped
+    name columns under their original file headers, so without this step the
+    names a user supplied are dropped from the results table. Supplied names
+    win; a CompTox name is kept only for the rows the file left blank.
+    """
+    if results_df.empty:
+        return results_df
+
+    mapped_name_columns = [
+        column_name
+        for column_name in dict.fromkeys(name_columns)
+        if column_name in results_df.columns and column_name != CHEMICAL_NAMES_COLUMN_INPUT
+    ]
+    if not mapped_name_columns:
+        return results_df
+
+    combined = results_df[mapped_name_columns].apply(_combine_row_names, axis=1)
+
+    if CHEMICAL_NAMES_COLUMN_INPUT in results_df.columns:
+        enriched = results_df[CHEMICAL_NAMES_COLUMN_INPUT].fillna("").astype(str).str.strip()
+        combined = combined.where(combined != "", enriched)
+
+    results_df[CHEMICAL_NAMES_COLUMN_INPUT] = combined
+    return results_df
+
+
 def _assign_fcc_columns(results_df: pd.DataFrame, cas_is_primary: bool) -> pd.DataFrame:
     """Resolve FCC status, tier and hazard for every row.
 
@@ -273,7 +318,7 @@ def run_grouping_pipeline(analysis_df: pd.DataFrame, mapping_payload: Dict[str, 
 
     if st.session_state.grouper_signature != grouper_sig or st.session_state.grouper_instance is None:
         st.session_state.grouper_instance = initialize_grouper(
-            _df=analysis_df.iloc[:1000],
+            _df=analysis_df.iloc[:MAX_ANALYSIS_ROWS],
             df_signature=df_signature,
             methods=methods_signature,
             mapping_payload=mapping_payload,
@@ -282,6 +327,7 @@ def run_grouping_pipeline(analysis_df: pd.DataFrame, mapping_payload: Dict[str, 
 
     results_df = st.session_state.grouper_instance.group_chemicals(save=False, verbose=True)
     results_df = _flatten_results_columns(results_df)
+    results_df = _assign_chemical_names(results_df, mapping_payload.get("name_columns") or [])
 
     if not load_fcc_cas_records() and not load_fcc_smiles_records():
         st.warning(
