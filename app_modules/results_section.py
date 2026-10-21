@@ -102,7 +102,7 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
     if group_columns:
         # A chemical counts once when it has an important group, a priority group, or both.
         groups_count = int(metrics_df[group_columns].apply(lambda col: col.apply(_has_non_empty_value)).any(axis=1).sum())
-        metrics.append(("With Important/Priority Groups", f"{groups_count}/{total_count}", "🔬"))
+        metrics.append(("With Groups", f"{groups_count}/{total_count}", "🔬"))
     na_fill_columns = [
         col for col in (TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, *group_columns)
         if col in results_df.columns
@@ -173,11 +173,11 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
             group_col1, group_col2 = st.columns([2, 1])
             with group_col1:
                 group_filter = st.multiselect(
-                    "Filter by " + " / ".join(group_columns),
+                    "Filter by group",
                     options=available_groups,
                     default=None,
                     key="groups_multiselect",
-                    help="Matches a group listed in either column, or across both combined.",
+                    help=f"Matches a group listed in {' or '.join(group_columns)}, or across both combined.",
                 )
 
             with group_col2:
