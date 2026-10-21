@@ -362,8 +362,8 @@ def display_workflow_explanation() -> None:
                 "Open <strong>Filter Options</strong> to focus results by:"
                 "<ul><li style=\"margin: 0.6rem 0;\">FCC status</li>"
                 "<li style=\"margin: 0.6rem 0;\">FCCprio tier</li>"
-                "<li style=\"margin: 0.6rem 0;\">Groups of concern</li></ul>",
-                "For multiple groups of concern, choose:<ul><li><strong>OR</strong> to match any selected group</li>"
+                "<li style=\"margin: 0.6rem 0;\">Important / priority groups (one filter covering both columns)</li></ul>",
+                "For multiple selected groups, choose:<ul><li><strong>OR</strong> to match any selected group</li>"
                 "<li><strong>AND</strong> to require all selected groups</li></ul>",
                 "Download final results as <strong>CSV</strong> or <strong>Excel</strong>.",
                 "To clear your input and start over, simply refresh the page or click <strong>Clear Data</strong>."

@@ -14,7 +14,7 @@ from app_modules.config import (
     CHEMICAL_NAMES_COLUMN_INPUT,
     FCC_LOOKUP_PATH,
     FOOD_CONTACT_CHEMICAL_COLUMN,
-    GROUPS_OF_CONCERN_COLUMN,
+    GROUP_COLUMNS,
     HAZARD_COLUMN,
     IN_FCCDB_COLUMN,
     IN_FCCMIGEX_COLUMN,
@@ -106,7 +106,7 @@ def build_display_results_df(results_df: pd.DataFrame, display_columns: List[str
         return results_df[available_columns].copy()
 
     fallback_columns = [
-        column_name for column_name in [FOOD_CONTACT_CHEMICAL_COLUMN, TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUPS_OF_CONCERN_COLUMN]
+        column_name for column_name in [FOOD_CONTACT_CHEMICAL_COLUMN, TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, *GROUP_COLUMNS]
         if column_name in results_df.columns
     ]
     if fallback_columns:

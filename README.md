@@ -68,7 +68,7 @@ reuses a cached grouper when the input, mapping, and methods are unchanged.
 ### Step 3: Explore results
 
 **Summary dashboard** with five cards: Total Chemicals, Valid SMILES, Food Contact,
-FCCprio Tier, and With Priority Groups (each as *matched / total*).
+FCCprio Tier, and With Important/Priority Groups (each as *matched / total*).
 
 **Results table** columns:
 
@@ -81,7 +81,8 @@ FCCprio Tier, and With Priority Groups (each as *matched / total*).
 | `is Food Contact Chemical` | Shown as tags: `FCCdb`, `FCCmigex`, both, or `Not an FCC` |
 | `Tier of FCCprio` | `Tier 1` (highest priority) … `Tier 4`, or `NA` |
 | `Hazard` | Comma-separated hazard flags, or `NA` |
-| `Priority groups` | Structural groups detected by the grouping methods |
+| `Important groups` | Structural groups flagged as important by the grouping methods |
+| `Priority groups` | Structural groups flagged as priority by the grouping methods |
 
 Hazard flags come from the FCC universe extract and cover CLP-style classifications
 (`Carc. 1`, `Carc. 2`, `Muta. 1`, `Muta. 2`, `Repr. 1`, `Repr. 2`, `STOT-RE`) and
@@ -93,8 +94,9 @@ persistence / mobility / bioaccumulation / endocrine descriptors (`persistent`, 
 - **Food Contact Chemical**: filter by FCC status.
 - **Tier of FCCprio**: filter by tier.
 - **Hazard**: selecting several flags requires *all* of them to be present.
-- **Priority groups**: selecting several groups reveals an **OR / AND** toggle, matching
-  *any* selected group or requiring *all* of them.
+- **Important / priority groups**: one filter covering both columns; a chemical matches when a
+  selected group appears in either column. Selecting several groups reveals an **OR / AND**
+  toggle, matching *any* selected group or requiring *all* of them (across both columns combined).
 
 **Export**: choose the scope, then download:
 

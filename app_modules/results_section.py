@@ -7,7 +7,7 @@ import streamlit as st
 
 from app_modules.config import DISPLAY_RESULT_COLUMNS
 from app_modules.processing import build_display_results_df
-from app_modules.config import CHEMICAL_NAMES_COLUMN, FOOD_CONTACT_CHEMICAL_COLUMN, FORMULA_COLUMN, RENAME_DICT, TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUPS_OF_CONCERN_COLUMN, CAS_COLUMN, SMILES_COLUMN
+from app_modules.config import CHEMICAL_NAMES_COLUMN, FOOD_CONTACT_CHEMICAL_COLUMN, FORMULA_COLUMN, RENAME_DICT, TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUP_COLUMNS, CAS_COLUMN, SMILES_COLUMN
 
 
 def _fcc_status_to_tags(value: object) -> list:
@@ -35,6 +35,18 @@ def _has_non_empty_value(value: object) -> bool:
         return False
 
     return True
+
+
+def _row_group_sets(df: pd.DataFrame, group_columns: list) -> pd.Series:
+    """Per row, the set of groups listed in any of the group columns."""
+    def to_set(row) -> frozenset:
+        groups = set()
+        for value in row:
+            if _has_non_empty_value(value) and str(value).strip().upper() != "NA":
+                groups.update(g.strip() for g in str(value).split(",") if g.strip())
+        return frozenset(groups)
+
+    return df[group_columns].apply(to_set, axis=1)
 
 
 def render_results_section(full_results_df: pd.DataFrame) -> None:
@@ -86,11 +98,13 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
         fcc_tier_count = int(metrics_df[TIER_OF_FCCPRIO_COLUMN].apply(_has_non_empty_value).sum())
         metrics.append(("FCCprio Tier", f"{fcc_tier_count}/{total_count}", "🎯"))
 
-    if GROUPS_OF_CONCERN_COLUMN in metrics_df.columns:
-        groups_count = int(metrics_df[GROUPS_OF_CONCERN_COLUMN].apply(_has_non_empty_value).sum())
-        metrics.append(("With Priority Groups", f"{groups_count}/{total_count}", "🔬"))
+    group_columns = [col for col in GROUP_COLUMNS if col in results_df.columns]
+    if group_columns:
+        # A chemical counts once when it has an important group, a priority group, or both.
+        groups_count = int(metrics_df[group_columns].apply(lambda col: col.apply(_has_non_empty_value)).any(axis=1).sum())
+        metrics.append(("With Groups", f"{groups_count}/{total_count}", "🔬"))
     na_fill_columns = [
-        col for col in (TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUPS_OF_CONCERN_COLUMN)
+        col for col in (TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, *group_columns)
         if col in results_df.columns
     ]
     if na_fill_columns:
@@ -152,16 +166,18 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
                 results_df = results_df[results_df[HAZARD_COLUMN].apply(lambda x: all(h in x.split(", ") for h in tier_filter))]
 
     with filter_col4:
-        if GROUPS_OF_CONCERN_COLUMN in results_df.columns:
-            groups_concern = results_df[GROUPS_OF_CONCERN_COLUMN].str.split(", ").explode().unique()
+        if group_columns:
+            row_groups = _row_group_sets(results_df, group_columns)
+            available_groups = sorted(set().union(*row_groups)) if len(row_groups) else []
 
             group_col1, group_col2 = st.columns([2, 1])
             with group_col1:
                 group_filter = st.multiselect(
-                    f"Filter by {GROUPS_OF_CONCERN_COLUMN}",
-                    options=sorted([g.strip() for g in groups_concern if g and str(g).strip() != ""]),
+                    "Filter by group",
+                    options=available_groups,
                     default=None,
                     key="groups_multiselect",
+                    help=f"Matches a group listed in {' or '.join(group_columns)}, or across both combined.",
                 )
 
             with group_col2:
@@ -173,18 +189,19 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
                         index=0,
                         label_visibility="collapsed",
                         key="logic_operator",
-                        help="OR: Match any selected group | AND: Match all selected groups",
+                        help="OR: Match any selected group | AND: Match all selected groups (across both columns)",
                     )
                 else:
                     logic_operator = "OR"
 
             if group_filter:
+                selected = set(group_filter)
                 if logic_operator == "OR":
-                    filter_func = lambda x: any(g.strip() in str(x) for g in group_filter)
+                    keep = row_groups.apply(lambda groups: bool(groups & selected))
                 else:
-                    filter_func = lambda x: all(g.strip() in str(x) for g in group_filter)
+                    keep = row_groups.apply(lambda groups: selected <= groups)
 
-                results_df = results_df[results_df[GROUPS_OF_CONCERN_COLUMN].apply(filter_func)]
+                results_df = results_df[keep]
     display_results_df = build_display_results_df(results_df, DISPLAY_RESULT_COLUMNS)
 
     table_df = display_results_df.copy()
@@ -216,7 +233,7 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
         unsafe_allow_html=True,
     )
     identifier_cols = [CAS_COLUMN, SMILES_COLUMN, CHEMICAL_NAMES_COLUMN, FORMULA_COLUMN]
-    enrichment_cols = [FOOD_CONTACT_CHEMICAL_COLUMN, TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUPS_OF_CONCERN_COLUMN]
+    enrichment_cols = [FOOD_CONTACT_CHEMICAL_COLUMN, TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, *GROUP_COLUMNS]
 
     def _order_export_columns(dataframe: pd.DataFrame) -> pd.DataFrame:
         col_order = []

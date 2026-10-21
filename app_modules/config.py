@@ -21,7 +21,10 @@ FORMULA_COLUMN = "Formula"
 FOOD_CONTACT_CHEMICAL_COLUMN = "is Food Contact Chemical"
 HAZARD_COLUMN = "Hazard"
 TIER_OF_FCCPRIO_COLUMN = "Tier of FCCprio"
-GROUPS_OF_CONCERN_COLUMN = "Priority groups"
+IMPORTANT_GROUPS_COLUMN = "Important groups"
+PRIORITY_GROUPS_COLUMN = "Priority groups"
+# Both group columns share one metric and one filter.
+GROUP_COLUMNS = (IMPORTANT_GROUPS_COLUMN, PRIORITY_GROUPS_COLUMN)
 
 # FCC reference data: the universe workbook and the single lookup table derived from it.
 FCC_UNIVERSE_PATH = "assets/FCCuniverse.xlsx"
@@ -44,7 +47,8 @@ DISPLAY_RESULT_COLUMNS = [
     FOOD_CONTACT_CHEMICAL_COLUMN,
     TIER_OF_FCCPRIO_COLUMN,
     HAZARD_COLUMN,
-    GROUPS_OF_CONCERN_COLUMN,
+    IMPORTANT_GROUPS_COLUMN,
+    PRIORITY_GROUPS_COLUMN,
 ]
 
 RENAME_DICT = {
