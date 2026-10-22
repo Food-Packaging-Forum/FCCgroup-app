@@ -578,8 +578,8 @@ def apply_global_styles() -> None:
     components.html(PWA_HEAD, height=0, width=0)
 
 
-def render_page_header(active_page: str = "main") -> tuple[bool, bool]:
-    """Render app title and nav tabs. Returns (go_to_workflow, go_to_analysis)."""
+def render_page_header(active_page: str = "main") -> tuple[bool, bool, bool]:
+    """Render app title and nav tabs. Returns (go_to_workflow, go_to_analysis, go_to_priority)."""
     image_path = Path(__file__).resolve().parents[1] / "static" / "FCCgroup_logo_signet.svg"
     image_src = _svg_as_data_uri(image_path)
 
@@ -589,51 +589,44 @@ def render_page_header(active_page: str = "main") -> tuple[bool, bool]:
     )
 
     st.markdown(
-        '<p class="subtitle">Identify and classify Food Contact Chemicals using FPF\'s integrated databases and structural analysis</p>',
+        '<p class="subtitle">Identify and classify Food Contact Chemicals (FCCs) using FPF\'s integrated databases and structural analysis</p>',
         unsafe_allow_html=True,
     )
 
-    on_workflow = active_page == "workflow"
-    analysis_bg = "#255aa7" if not on_workflow else "transparent"
-    analysis_color = "#ffffff" if not on_workflow else "inherit"
-    analysis_border = "none" if not on_workflow else "1px solid rgba(128,128,128,0.4)"
-    workflow_bg = "#255aa7" if on_workflow else "transparent"
-    workflow_color = "#ffffff" if on_workflow else "inherit"
-    workflow_border = "none" if on_workflow else "1px solid rgba(128,128,128,0.4)"
+    nav_pages = [
+        ("main", "nav_analysis_button", "🔬 Analysis"),
+        ("priority", "nav_priority_button", "🍜 FCC groups"),
+        ("workflow", "nav_workflow_button", "📖 How to use"),
+    ]
 
-    st.markdown(
-        f"""
-        <style>
-        .st-key-nav_analysis_button button {{
-            background: {analysis_bg}; color: {analysis_color}; border: {analysis_border};
+    nav_css = ""
+    for page, key, _ in nav_pages:
+        is_active = active_page == page
+        bg = "#255aa7" if is_active else "transparent"
+        color = "#ffffff" if is_active else "inherit"
+        border = "none" if is_active else "1px solid rgba(128,128,128,0.4)"
+        nav_css += f"""
+        .st-key-{key} button {{
+            background: {bg}; color: {color}; border: {border};
             border-radius: 12px; font-weight: 700; min-height: 2.4rem;
         }}
-        .st-key-nav_analysis_button button:hover {{
-            background: {analysis_bg}; color: {analysis_color}; border: {analysis_border};
+        .st-key-{key} button:hover {{
+            background: {bg}; color: {color}; border: {border};
             transform: scale(1.03); box-shadow: var(--fpf-shadow);
         }}
-        .st-key-nav_workflow_button button {{
-            background: {workflow_bg}; color: {workflow_color}; border: {workflow_border};
-            border-radius: 12px; font-weight: 700; min-width: 148px;
-        }}
-        .st-key-nav_workflow_button button:hover {{
-            background: {workflow_bg}; color: {workflow_color}; border: {workflow_border};
-            transform: scale(1.03); box-shadow: var(--fpf-shadow);
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+        """
 
-    _, center_col, _ = st.columns([1, 2, 1])
+    st.markdown(f"<style>{nav_css}</style>", unsafe_allow_html=True)
+
+    _, center_col, _ = st.columns([1, 3, 1])
     with center_col:
-        col_a, col_w = st.columns(2)
-        with col_a:
-            go_to_analysis = st.button("🔬 Analysis", key="nav_analysis_button", use_container_width=True)
-        with col_w:
-            go_to_workflow = st.button("📖 How to use", key="nav_workflow_button", use_container_width=True)
+        clicks = [
+            nav_col.button(label, key=key, use_container_width=True)
+            for nav_col, (_, key, label) in zip(st.columns(len(nav_pages)), nav_pages)
+        ]
 
-    return go_to_workflow, go_to_analysis
+    go_to_analysis, go_to_priority, go_to_workflow = clicks
+    return go_to_workflow, go_to_analysis, go_to_priority
 
 
 _ISSUES_BASE_URL = "https://github.com/Food-Packaging-Forum/FCCgroup-app/issues/new"
@@ -781,6 +774,64 @@ def apply_mode_button_styles(is_manual_mode: bool) -> None:
             box-shadow: var(--fpf-shadow-strong);
             transform: scale(1.03);
         }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def apply_group_button_styles() -> None:
+    """Style the group selector buttons like the input mode buttons (blue when active)."""
+    st.markdown(
+        """
+        <style>
+        [class*="st-key-priority_group_button_"] button {
+            min-height: 3.2rem;
+            border-radius: 16px;
+            padding: 0.6rem 1rem;
+            background: transparent;
+            color: inherit;
+            border: 1px solid rgba(128, 128, 128, 0.4);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        [class*="st-key-priority_group_button_"] button p {
+            line-height: 1.35;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        [class*="st-key-priority_group_button_"] button[data-testid="stBaseButton-primary"] {
+            background: #255aa7;
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 6px 16px rgba(37, 90, 167, 0.28);
+        }
+
+        [class*="st-key-priority_group_button_"] button:hover {
+            box-shadow: var(--fpf-shadow-strong);
+            transform: scale(1.03);
+        }
+
+        [class*="st-key-priority_group_button_"] button[data-testid="stBaseButton-secondary"]:hover {
+            background: transparent;
+            color: inherit;
+            border: 1px solid rgba(128, 128, 128, 0.4);
+        }
+
+        [class*="st-key-priority_group_button_"] button[data-testid="stBaseButton-primary"]:hover {
+            background: #255aa7;
+            color: #ffffff;
+        }
+
+        .group-buttons-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            color: var(--fpf-blue);
+            margin: 1.5rem 0 0.5rem 0;
+        }
         </style>
         """,
         unsafe_allow_html=True,

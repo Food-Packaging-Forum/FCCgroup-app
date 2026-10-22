@@ -29,6 +29,9 @@ GROUP_COLUMNS = (IMPORTANT_GROUPS_COLUMN, PRIORITY_GROUPS_COLUMN)
 # FCC reference data: the universe workbook and the single lookup table derived from it.
 FCC_UNIVERSE_PATH = "assets/FCCuniverse.xlsx"
 FCC_LOOKUP_PATH = "assets/fcc_lookup.tsv"
+CAS_MAIN_UNIVERSE_COLUMN = "casId main"
+PRIORITY_GROUP_UNIVERSE_COLUMN = "FCC priority group"
+IMPORTANT_GROUP_UNIVERSE_COLUMN = "FCC important group"
 
 IN_FCCDB_COLUMN = "inFCCdb"
 IN_FCCMIGEX_COLUMN = "inFCCmigex"
