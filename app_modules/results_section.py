@@ -61,7 +61,7 @@ def _row_group_sets(df: pd.DataFrame, group_columns: list) -> pd.Series:
 def _structure_svg(smiles: str) -> Optional[str]:
     """2D depiction of a SMILES as SVG, or None when RDKit cannot parse it."""
     mol = Chem.MolFromSmiles(smiles)
-    if mol is None:
+    if mol is None or rdMolDraw2D is None:
         return None
     drawer = rdMolDraw2D.MolDraw2DSVG(*STRUCTURE_IMAGE_SIZE)
     rdMolDraw2D.PrepareAndDrawMolecule(drawer, mol)
