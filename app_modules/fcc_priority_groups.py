@@ -153,6 +153,12 @@ def render_priority_groups_page() -> None:
         f" and/or {EXTERNAL_SOURCES_ICON} “identified by external sources”.</p>",
         unsafe_allow_html=True,
     )
+    st.info(
+        "More information on how important and priority groups are defined, and on the criteria for including"
+        " chemicals in these groups, is provided in the supplementary information of the publication"
+        " ([DOI: 10.5281/zenodo.20747119](https://doi.org/10.5281/zenodo.20747119)).",
+        icon="ℹ️",
+    )
 
     apply_group_button_styles()
 
