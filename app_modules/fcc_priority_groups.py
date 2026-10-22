@@ -6,14 +6,22 @@ from typing import Dict
 import pandas as pd
 import streamlit as st
 
-from fccgroup.constants import IMPORTANT_GROUPS, PRIORITY_GROUPS_CONCERN
+from fccgroup.constants import (
+    EXPOSURE_GROUPS_CONCERN,
+    EXTERNAL_GROUPS_CONCERN,
+    IMPORTANT_GROUPS,
+    PRIORITY_GROUPS_CONCERN,
+)
 
 from app_modules.config import (
     CAS_COLUMN_INPUT,
     CAS_MAIN_UNIVERSE_COLUMN,
+    EXTERNAL_SOURCES_ICON,
     FCC_UNIVERSE_PATH,
     FOOD_CONTACT_CHEMICAL_COLUMN,
     HAZARD_COLUMN,
+    HIGH_EXPOSURE_ICON,
+    HIGH_HAZARD_ICON,
     IMPORTANT_GROUP_UNIVERSE_COLUMN,
     IMPORTANT_GROUPS_COLUMN,
     IN_FCCDB_COLUMN,
@@ -40,6 +48,19 @@ ALL_GROUPS = [*PRIORITY_GROUPS_CONCERN, *OTHER_IMPORTANT_GROUPS]
 _GROUP_PATTERN = re.compile(
     "|".join(re.escape(group) for group in sorted(ALL_GROUPS, key=len, reverse=True))
 )
+
+
+def _group_icons(group: str) -> str:
+    """Colored icons telling why a group is included; several can apply."""
+    return " ".join(
+        icon
+        for icon, members in (
+            (HIGH_HAZARD_ICON, PRIORITY_GROUPS_CONCERN),
+            (HIGH_EXPOSURE_ICON, EXPOSURE_GROUPS_CONCERN),
+            (EXTERNAL_SOURCES_ICON, EXTERNAL_GROUPS_CONCERN),
+        )
+        if group in members
+    )
 
 
 def _fcc_status(in_fccdb: bool, in_fccmigex: bool) -> str:
@@ -127,8 +148,9 @@ def render_priority_groups_page() -> None:
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<p>Click a group to list only the chemicals of the FCC universe that belong to it. "
-        "Click the active group again to show every chemical, including those without an assigned group.</p>",
+        "<p>Click on group for which you would like to explore all known food contact chemicals (FCCs). Icons signify the reason for"
+        f" inclusion: “high-hazard” ({HIGH_HAZARD_ICON}, i.e. priority group), “high-exposure” ({HIGH_EXPOSURE_ICON}),"
+        f" and/or identified by external sources ({EXTERNAL_SOURCES_ICON}).</p>",
         unsafe_allow_html=True,
     )
 
@@ -142,14 +164,16 @@ def render_priority_groups_page() -> None:
         st.markdown(f'<p class="group-buttons-title">{heading}</p>', unsafe_allow_html=True)
         for start in range(0, len(groups), BUTTONS_PER_ROW):
             for col, group in zip(st.columns(BUTTONS_PER_ROW), groups[start:start + BUTTONS_PER_ROW]):
-                col.button(
-                    f"{group} ({counts[group]})",
-                    key=f"priority_group_button_{group}",
-                    type="primary" if group == selected else "secondary",
-                    use_container_width=True,
-                    on_click=_select_group,
-                    args=(group,),
-                )
+                with col.container(key=f"group_card_{group}"):
+                    st.button(
+                        f"{group} ({counts[group]})",
+                        key=f"priority_group_button_{group}",
+                        type="primary" if group == selected else "secondary",
+                        use_container_width=True,
+                        on_click=_select_group,
+                        args=(group,),
+                    )
+                    st.markdown(f'<div class="group-icons">{_group_icons(group)}</div>', unsafe_allow_html=True)
 
     # Without a selection the table lists every chemical of the universe.
     group_df = universe_df

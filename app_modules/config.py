@@ -39,6 +39,11 @@ CANONICAL_SMILES_COLUMN = "canonical_SMILES"
 
 NOT_AN_FCC_LABEL = "Not an FCC"
 
+# Icons marking why a group is included, and the color each is always rendered in.
+HIGH_HAZARD_ICON = '<span style="color:#DB2752">🅗</span>'
+HIGH_EXPOSURE_ICON = '<span style="color:#F4AD20">🅔</span>'
+EXTERNAL_SOURCES_ICON = '<span style="color:#91125F">🅧</span>'
+
 # Upper bound on rows handed to the grouper; larger inputs are truncated.
 MAX_ANALYSIS_ROWS = 1000
 

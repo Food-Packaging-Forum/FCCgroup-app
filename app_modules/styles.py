@@ -785,10 +785,33 @@ def apply_group_button_styles() -> None:
     st.markdown(
         """
         <style>
+        /* The icons line sits over the bottom of its button, centered. */
+        [class*="st-key-group_card_"] {
+            gap: 0;
+        }
+
+        /* Zero-height row shifted up over the button's bottom padding; transform
+           (unlike a negative margin) leaves the card's height untouched. */
+        [class*="st-key-group_card_"] [data-testid="stElementContainer"]:has(.group-icons) {
+            height: 0;
+            transform: translateY(-1.5rem);
+            overflow: visible;
+            pointer-events: none;
+            position: relative;
+            z-index: 1;
+        }
+
+        .group-icons {
+            text-align: center;
+            font-size: 0.85rem;
+            line-height: 1;
+            letter-spacing: 0.15rem;
+        }
+
         [class*="st-key-priority_group_button_"] button {
-            min-height: 3.2rem;
+            min-height: 4.2rem;
             border-radius: 16px;
-            padding: 0.6rem 1rem;
+            padding: 0.6rem 1rem 1.4rem 1rem;
             background: transparent;
             color: inherit;
             border: 1px solid rgba(128, 128, 128, 0.4);
