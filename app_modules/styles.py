@@ -288,6 +288,78 @@ GLOBAL_CSS = """
         margin: 0 0 1.25rem 0;
     }
 
+    /* Selected chemical: structure image and details cards, styled like .metric-card */
+    /* Grid cells share the row height, so both cards are always equally tall. */
+    .structure-panel {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: stretch;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .structure-panel {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .structure-card {
+        background: var(--secondary-background-color);
+        border: 1px solid rgba(128, 128, 128, 0.15);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        box-sizing: border-box;
+    }
+
+    .structure-image-card {
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .structure-image {
+        width: 100%;
+        height: auto;
+        max-width: 420px;
+    }
+
+    .structure-details-card {
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+    }
+
+    .structure-details-label {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--fpf-blue);
+        margin-bottom: 0.15rem;
+    }
+
+    .structure-details-value {
+        font-size: 0.95rem;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+    }
+
+    .structure-details-smiles {
+        word-break: break-all;
+    }
+
+    .structure-details-chip {
+        display: inline-block;
+        background: var(--fpf-soft-blue);
+        color: var(--fpf-dark-blue);
+        border-radius: 999px;
+        padding: 0.15rem 0.65rem;
+        margin: 0 0.35rem 0.35rem 0;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
     /* Full-width blue footer band — breaks out of the centered container
        using the same 100vw technique as .section-gradient-divider */
     .footer-band {
@@ -794,7 +866,7 @@ def apply_group_button_styles() -> None:
            (unlike a negative margin) leaves the card's height untouched. */
         [class*="st-key-group_card_"] [data-testid="stElementContainer"]:has(.group-icons) {
             height: 0;
-            transform: translateY(-1.5rem);
+            transform: translateY(-2.2rem);
             overflow: visible;
             pointer-events: none;
             position: relative;
@@ -803,13 +875,15 @@ def apply_group_button_styles() -> None:
 
         .group-icons {
             text-align: center;
-            font-size: 0.85rem;
             line-height: 1;
             letter-spacing: 0.15rem;
         }
 
+        /* One fixed height for every group button: room for three label lines
+           plus the icons row, so long names that wrap do not change the size. */
         [class*="st-key-priority_group_button_"] button {
-            min-height: 4.2rem;
+            height: 6.2rem;
+            min-height: 6.2rem;
             border-radius: 16px;
             padding: 0.6rem 1rem 1.4rem 1rem;
             background: transparent;
@@ -819,6 +893,10 @@ def apply_group_button_styles() -> None:
         }
 
         [class*="st-key-priority_group_button_"] button p {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
             line-height: 1.35;
             font-size: 1rem;
             font-weight: 600;

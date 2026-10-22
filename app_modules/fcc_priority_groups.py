@@ -32,13 +32,13 @@ from app_modules.config import (
     SMILES_COLUMN_INPUT,
     TIER_OF_FCCPRIO_COLUMN,
 )
-from app_modules.results_section import render_results_section
+from app_modules.results_section import RESULTS_TABLE_KEY, render_results_section
 from app_modules.styles import apply_group_button_styles
 
 SELECTED_GROUP_KEY = "priority_group_selected"
 BUTTONS_PER_ROW = 4
 # Keyed widgets in the results section; their state must not outlive the selected group.
-RESULTS_WIDGET_KEYS = ("groups_multiselect", "logic_operator", "download_scope_selector")
+RESULTS_WIDGET_KEYS = ("groups_multiselect", "logic_operator", "download_scope_selector", RESULTS_TABLE_KEY)
 
 # Important groups that are not priority groups, in fccgroup's order.
 OTHER_IMPORTANT_GROUPS = [g for g in dict.fromkeys(IMPORTANT_GROUPS) if g not in PRIORITY_GROUPS_CONCERN]
@@ -149,8 +149,8 @@ def render_priority_groups_page() -> None:
     )
     st.markdown(
         "<p>Click on group for which you would like to explore all known food contact chemicals (FCCs). Icons signify the reason for"
-        f" inclusion: “high-hazard” ({HIGH_HAZARD_ICON}, i.e. priority group), “high-exposure” ({HIGH_EXPOSURE_ICON}),"
-        f" and/or identified by external sources ({EXTERNAL_SOURCES_ICON}).</p>",
+        f" inclusion: {HIGH_HAZARD_ICON} “high-hazard” , {HIGH_EXPOSURE_ICON} “high-exposure”,"
+        f" and/or {EXTERNAL_SOURCES_ICON} “identified by external sources”.</p>",
         unsafe_allow_html=True,
     )
 

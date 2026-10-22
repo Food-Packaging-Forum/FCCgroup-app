@@ -1,14 +1,21 @@
 """Results rendering and export UI."""
 
+import base64
+from html import escape
 from io import BytesIO
 from typing import Callable, Optional
 
 import pandas as pd
 import streamlit as st
+from rdkit import Chem
+from rdkit.Chem.Draw import rdMolDraw2D
 
 from app_modules.config import DISPLAY_RESULT_COLUMNS
 from app_modules.processing import build_display_results_df
 from app_modules.config import CHEMICAL_NAMES_COLUMN, FOOD_CONTACT_CHEMICAL_COLUMN, FORMULA_COLUMN, RENAME_DICT, TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, GROUP_COLUMNS, CAS_COLUMN, SMILES_COLUMN
+
+RESULTS_TABLE_KEY = "results_table"
+STRUCTURE_IMAGE_SIZE = (420, 320)
 
 
 def _fcc_status_to_tags(value: object) -> list:
@@ -48,6 +55,65 @@ def _row_group_sets(df: pd.DataFrame, group_columns: list) -> pd.Series:
         return frozenset(groups)
 
     return df[group_columns].apply(to_set, axis=1)
+
+
+@st.cache_data(show_spinner=False, max_entries=500)
+def _structure_svg(smiles: str) -> Optional[str]:
+    """2D depiction of a SMILES as SVG, or None when RDKit cannot parse it."""
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        return None
+    drawer = rdMolDraw2D.MolDraw2DSVG(*STRUCTURE_IMAGE_SIZE)
+    rdMolDraw2D.PrepareAndDrawMolecule(drawer, mol)
+    drawer.FinishDrawing()
+    return drawer.GetDrawingText()
+
+
+def _render_structure_panel(row: pd.Series) -> None:
+    """Structure image of the selected row next to its identifiers and groups.
+
+    Both cards are cells of one CSS grid so they always share the same height,
+    independent of Streamlit's column markup.
+    """
+    smiles = row.get(SMILES_COLUMN)
+    svg = _structure_svg(str(smiles).strip()) if _has_non_empty_value(smiles) else None
+    if svg is not None:
+        svg_b64 = base64.b64encode(svg.encode("utf-8")).decode("ascii")
+        image_html = f'<img class="structure-image" src="data:image/svg+xml;base64,{svg_b64}" alt="Chemical structure">'
+    elif _has_non_empty_value(smiles):
+        image_html = '<div class="structure-details-value">The SMILES of this chemical could not be drawn.</div>'
+    else:
+        image_html = '<div class="structure-details-value">No structure available: this chemical has no SMILES.</div>'
+
+    detail_columns = [
+        CHEMICAL_NAMES_COLUMN, CAS_COLUMN, FORMULA_COLUMN, SMILES_COLUMN,
+        TIER_OF_FCCPRIO_COLUMN, HAZARD_COLUMN, *GROUP_COLUMNS,
+    ]
+    fields = []
+    for column in detail_columns:
+        if column not in row.index or not _has_non_empty_value(row[column]) or str(row[column]).strip().upper() == "NA":
+            continue
+        value = str(row[column]).strip()
+        if column in GROUP_COLUMNS:
+            # One chip per group, like the tags in the results table.
+            value_html = "".join(
+                f'<span class="structure-details-chip">{escape(group.strip())}</span>'
+                for group in value.split(",") if group.strip()
+            )
+        elif column == SMILES_COLUMN:
+            value_html = f'<span class="structure-details-smiles">{escape(value)}</span>'
+        else:
+            value_html = escape(value)
+        fields.append(
+            f'<div class="structure-details-field"><div class="structure-details-label">{escape(column)}</div>'
+            f'<div class="structure-details-value">{value_html}</div></div>'
+        )
+    body = "".join(fields) if fields else '<div class="structure-details-value">No details available.</div>'
+    st.markdown(
+        f'<div class="structure-panel"><div class="structure-card structure-image-card">{image_html}</div>'
+        f'<div class="structure-card structure-details-card">{body}</div></div>',
+        unsafe_allow_html=True,
+    )
 
 
 @st.cache_data(show_spinner=False)
@@ -246,7 +312,22 @@ def render_results_section(
             color = ["#0aaa99", "#f4ad20", "grey"],
         )
 
-    st.dataframe(table_df, use_container_width=True, column_config=column_config)
+    table_event = st.dataframe(
+        table_df,
+        use_container_width=True,
+        column_config=column_config,
+        key=RESULTS_TABLE_KEY,
+        on_select="rerun",
+        selection_mode="single-row",
+    )
+
+    # Selected positions refer to table_df as passed in, whatever sorting the user applied;
+    # a selection made before the filters changed may point past the end of the table.
+    selected_rows = [i for i in table_event.selection.rows if i < len(display_results_df)]
+    if selected_rows:
+        _render_structure_panel(display_results_df.iloc[selected_rows[0]])
+    else:
+        st.caption("Select a row in the table (checkbox on the left) to see the chemical structure.")
 
     
     st.markdown(
