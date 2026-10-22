@@ -1,6 +1,7 @@
 """Results rendering and export UI."""
 
 from io import BytesIO
+from typing import Callable, Optional
 
 import pandas as pd
 import streamlit as st
@@ -49,8 +50,32 @@ def _row_group_sets(df: pd.DataFrame, group_columns: list) -> pd.Series:
     return df[group_columns].apply(to_set, axis=1)
 
 
-def render_results_section(full_results_df: pd.DataFrame) -> None:
-    """Render summary metrics, filters, table, and export controls."""
+@st.cache_data(show_spinner=False)
+def _to_csv_bytes(df: pd.DataFrame) -> bytes:
+    """CSV export, cached so unchanged tables are not re-serialized on every rerun."""
+    return df.to_csv(index=False).encode("utf-8")
+
+
+@st.cache_data(show_spinner=False)
+def _to_excel_bytes(df: pd.DataFrame) -> bytes:
+    """Excel export, cached because writing a large table with openpyxl is slow."""
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Results")
+    return buffer.getvalue()
+
+
+def render_results_section(
+    full_results_df: pd.DataFrame,
+    on_clear: Optional[Callable[[], None]] = None,
+    title: str = "Step 3: Explore Results",
+) -> None:
+    """Render summary metrics, filters, table, and export controls.
+
+    `on_clear` replaces the default "Clear Data" behaviour (resetting the analysis
+    results and input text) for pages whose results come from somewhere else.
+    `title` replaces the step heading for pages that are not part of the analysis steps.
+    """
     results_df = full_results_df.copy()
     results_df = results_df.rename(columns=RENAME_DICT)
     if len(results_df) == 0:
@@ -58,10 +83,10 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
         return
 
     st.markdown(
-        """
+        f"""
         <div class="section-gradient-divider"></div>
         <h2 class="workflow-section-title">
-            <span class="highlight">Step 3: Explore Results</span>
+            <span class="highlight">{title}</span>
         </h2>
         """,
         unsafe_allow_html=True,
@@ -263,7 +288,7 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
 
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
-        csv = export_results_df.to_csv(index=False).encode("utf-8")
+        csv = _to_csv_bytes(export_results_df)
         st.download_button(
             label="📥 Download CSV",
             data=csv,
@@ -274,13 +299,9 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
         )
 
     with col2:
-        buffer = BytesIO()
-        with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
-            export_results_df.to_excel(writer, index=False, sheet_name="Results")
-
         st.download_button(
             label="📥 Download Excel",
-            data=buffer.getvalue(),
+            data=_to_excel_bytes(export_results_df),
             file_name=f"fcc_grouping_results_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True,
@@ -289,6 +310,9 @@ def render_results_section(full_results_df: pd.DataFrame) -> None:
 
     with col3:
         if st.button("🔄 Clear Data", use_container_width=True, key="clear_data_results_button"):
-            st.session_state.results_df = None
-            st.session_state.cas_input_text = ""
+            if on_clear is not None:
+                on_clear()
+            else:
+                st.session_state.results_df = None
+                st.session_state.cas_input_text = ""
             st.rerun()

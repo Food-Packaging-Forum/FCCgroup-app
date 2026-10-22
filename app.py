@@ -6,6 +6,7 @@ from pathlib import Path
 import streamlit as st
 
 from app_modules.input_section import render_input_section
+from app_modules.fcc_priority_groups import render_priority_groups_page
 from app_modules.processing import run_grouping_pipeline
 from app_modules.results_section import render_results_section
 from app_modules.state import initialize_session_state
@@ -132,7 +133,7 @@ def main() -> None:
     initialize_session_state()
     
     with st.container():
-        go_to_workflow, go_to_analysis = render_page_header(st.session_state.active_page)
+        go_to_workflow, go_to_analysis, go_to_priority = render_page_header(st.session_state.active_page)
 
         if go_to_workflow:
             st.session_state.active_page = "workflow"
@@ -140,9 +141,14 @@ def main() -> None:
         if go_to_analysis:
             st.session_state.active_page = "main"
             st.rerun()
+        if go_to_priority:
+            st.session_state.active_page = "priority"
+            st.rerun()
 
         if st.session_state.active_page == "workflow":
             display_workflow_explanation()
+        elif st.session_state.active_page == "priority":
+            render_priority_groups_page()
         else:
             _render_grouping_config()
 
